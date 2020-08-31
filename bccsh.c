@@ -8,12 +8,6 @@
 char* current_user;
 char* current_dir;
 char* prompt;
-char cmd[8];
-
-char* receive_cmd() {
-  char *line = readline(prompt);
-  return line;
-}
 
 int length_of(char* str) {
   int i;
@@ -33,7 +27,7 @@ void build_prompt() {
 
 void interactive_loop() {
   while(1) {
-    char* line = receive_cmd();
+    char* line = readline(prompt);
     if (line && *line) {
       add_history(line);
     }
