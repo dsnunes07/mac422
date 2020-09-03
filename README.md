@@ -4,4 +4,4 @@ EPs de Sistemas Operacionais
 
 * EP2 - entrega até 05/11
 
-* Ep3 - entrega até 07/12
+* EP3 - entrega até 07/12
