@@ -9,6 +9,12 @@ char* current_user;
 char* current_dir;
 char* prompt;
 
+// command constants
+const char* du = "/usr/bin/du";
+const char* traceroute = "/usr/bin/traceroute";
+const char* ep1 = "./ep1";
+
+
 // linked list to store command tokens
 struct Node {
   char* data;
@@ -58,6 +64,7 @@ struct Node* split_command(char* line) {
   char* token;
   struct Node* first_arg = (struct Node*) malloc(sizeof(struct Node));
   first_arg->data = strsep(&line, " ");
+  first_arg->next = NULL;
   struct Node* previous_arg = first_arg;
 
   while ((token = strsep(&line, " ")) != NULL) {
@@ -71,13 +78,52 @@ struct Node* split_command(char* line) {
   return first_arg;
 }
 
+const char** copy_to_array(struct Node* args) {
+  int argc = count_linked_list(args);
+  // debug
+  // printf("Number of args: %d\n", argc);
+  const char **params = malloc((argc + 1) * sizeof(char *));
+  int i = 0;
+
+  while (args != NULL) {
+    params[i] = args->data;
+    args = args->next;
+    // debug
+    // printf("params %d == %s\n", i, params[i]);
+    i++;
+  }
+
+  params[i] = NULL;
+  return params;
+}
+
+void run_command(const char** args_arr) {
+  const char* first_cmd = args_arr[0];
+  if (strcmp(first_cmd, du) == 0 || strcmp(first_cmd, traceroute) == 0 || strcmp(first_cmd, ep1) == 0) {
+    pid_t pid = fork();
+    if (pid == 0) {
+      int status = execv(first_cmd, args_arr);
+      if (status) {
+        printf("Error running %s\n", first_cmd);
+      }
+      exit(status);
+    }
+  } else {
+    printf("Perhaps you should implement this one\n");
+  }
+}
+
 // process text typed by user
-void process_command(char* line) {
+void process_input(char* line) {
   char *original_line = strdup(line);
   struct Node* args = split_command(line);
-  int size = count_linked_list(args);
-  printf("Number of args: %d\n", size);
-  print_linked_list(args);
+  const char** args_arr = copy_to_array(args);
+  run_command(args_arr);
+  int argc = count_linked_list(args);
+  /* for (int i=0; i < argc; i++) {
+    printf("%s\n", args_arr[i]);
+  } */
+
 }
 
 void interactive_loop() {
@@ -85,7 +131,7 @@ void interactive_loop() {
     char* line = readline(prompt);
     if (line && *line) {
       add_history(line);
-      process_command(line);
+      process_input(line);
     }
   }
 }
