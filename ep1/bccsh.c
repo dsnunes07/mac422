@@ -3,12 +3,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
 #define BOLDWHITE   "\033[1m\033[37m"
-#define RESET   "\033[0m"
+#define RESET       "\033[0m"
 
+// global variables for shell prompt
 char* current_user;
 char* current_dir;
 char* prompt;
@@ -67,14 +69,14 @@ void build_prompt() {
 
 // split command strings and stores them in a
 // linked list
-struct Node* split_command(char* line) {
+struct Node* split_command(char* line, char* delimiter) {
   char* token;
   struct Node* first_arg = (struct Node*) malloc(sizeof(struct Node));
-  first_arg->data = strsep(&line, " ");
+  first_arg->data = strsep(&line, delimiter);
   first_arg->next = NULL;
   struct Node* previous_arg = first_arg;
 
-  while ((token = strsep(&line, " ")) != NULL) {
+  while ((token = strsep(&line, delimiter)) != NULL) {
     struct Node* arg = (struct Node*) malloc(sizeof(struct Node));
     arg->data = token;
     arg->next = NULL;
@@ -104,28 +106,55 @@ const char** copy_to_array(struct Node* args) {
   return params;
 }
 
+void run_exec_command(const char** args_arr) {
+  pid_t pid = fork();
+  if (pid == 0) {
+    int status = execv(args_arr[0], (char* const*) args_arr);
+    if (status) {
+      printf("Error while executing command %s\n", args_arr[0]);
+    }
+    exit(status);
+  } else {
+    waitpid(pid, NULL, 0);
+  }
+}
+
+int run_mkdir(const char** args_arr) {
+  int status = mkdir(args_arr[1], S_IRWXU);
+  if (status) {
+    printf("erro: não foi possível criar o diretório '%s' aqui\n", args_arr[1]);
+  }
+  return status;
+}
+
+int run_kill(const char** args_arr) {
+  printf("kill\n");
+}
+
+int run_ln(const char** args_arr) {
+  printf("ln\n");
+}
 void run_command(const char** args_arr) {
   const char* first_cmd = args_arr[0];
   if (strcmp(first_cmd, du) == 0 || strcmp(first_cmd, traceroute) == 0 || strcmp(first_cmd, ep1) == 0) {
-    pid_t pid = fork();
-    if (pid == 0) {
-      int status = execv(first_cmd, args_arr);
-      if (status) {
-        printf("Error running %s\n", first_cmd);
-      }
-      exit(status);
-    } else {
-      waitpid(pid, NULL, NULL);
-    }
+    run_exec_command(args_arr);
   } else {
-    printf("Perhaps you should implement this one\n");
+    if (strcmp(first_cmd, "mkdir") == 0) {
+      run_mkdir(args_arr);
+    } else if (strcmp(first_cmd, "kill") == 0) {
+      run_kill(args_arr);
+    } else if (strcmp(first_cmd, "ln") == 0) {
+      run_ln(args_arr);
+    } else {
+      printf("bccsh: command not found.\n");
+    }
   }
 }
 
 // process text typed by user
 void process_input(char* line) {
   char *original_line = strdup(line);
-  struct Node* args = split_command(line);
+  struct Node* args = split_command(line, " ");
   const char** args_arr = copy_to_array(args);
   run_command(args_arr);
   int argc = count_linked_list(args);
