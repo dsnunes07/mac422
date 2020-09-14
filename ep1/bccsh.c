@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <signal.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -122,13 +124,18 @@ void run_exec_command(const char** args_arr) {
 int run_mkdir(const char** args_arr) {
   int status = mkdir(args_arr[1], S_IRWXU);
   if (status) {
-    printf("erro: não foi possível criar o diretório '%s' aqui\n", args_arr[1]);
+    printf("erro: não foi possível criar o diretório '%s'\n", args_arr[1]);
   }
   return status;
 }
 
 int run_kill(const char** args_arr) {
-  printf("kill\n");
+  int pid = atoi(args_arr[2]);
+  int status = kill(pid, SIGKILL);
+  if (status) {
+    printf("erro: não foi possível executar kill para o pid %d\n", pid);
+  }
+  return status;
 }
 
 int run_ln(const char** args_arr) {
