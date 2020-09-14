@@ -139,7 +139,13 @@ int run_kill(const char** args_arr) {
 }
 
 int run_ln(const char** args_arr) {
-  printf("ln\n");
+  const char* from = args_arr[2];
+  const char* to = args_arr[3];
+  int status = symlink(from, to);
+  if (status) {
+    printf("erro: não foi possível criar um link simbólico para o arquivo %s\n", from);
+  }
+  return status;
 }
 void run_command(const char** args_arr) {
   const char* first_cmd = args_arr[0];
