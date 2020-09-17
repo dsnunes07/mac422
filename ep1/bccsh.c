@@ -9,9 +9,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define BOLDWHITE   "\033[1m\033[37m"
-#define RESET       "\033[0m"
-
 // global variables for shell prompt
 char* current_user;
 char* current_dir;
@@ -58,15 +55,14 @@ int count_linked_list(struct Node* current) {
 // creates shell prompt given current user name and current directory
 void build_prompt() {
   // calculates size of prompt string to be allocated
-  int size = 4 + length_of(current_user) + length_of(current_dir) + length_of(BOLDWHITE) + length_of(RESET);
+  int size = 4 + length_of(current_user) + length_of(current_dir);
   prompt = (char *) malloc(size * sizeof(char));
-  strcat(prompt, BOLDWHITE);
+  prompt[0] = '\0';
   strcat(prompt, "{");
   strcat(prompt, current_user);
   strcat(prompt, "@");
   strcat(prompt, current_dir);
   strcat(prompt, "} ");
-  strcat(prompt, RESET);
 }
 
 // split command strings and stores them in a
