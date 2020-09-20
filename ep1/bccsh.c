@@ -81,7 +81,6 @@ struct Node* split_command(char* line, char* delimiter) {
     previous_arg->next = arg;
     previous_arg = arg;
   }
-
   return first_arg;
 }
 
@@ -105,16 +104,11 @@ const char** copy_to_array(struct Node* args) {
 }
 
 void run_exec_command(const char** args_arr) {
-  pid_t pid = fork();
-  if (pid == 0) {
     int status = execv(args_arr[0], (char* const*) args_arr);
     if (status) {
       printf("Error while executing command %s\n", args_arr[0]);
     }
     exit(status);
-  } else {
-    waitpid(pid, NULL, 0);
-  }
 }
 
 int run_mkdir(const char** args_arr) {
@@ -165,9 +159,15 @@ void process_input(char* line) {
   char *original_line = strdup(line);
   struct Node* args = split_command(line, " ");
   const char** args_arr = copy_to_array(args);
-  run_command(args_arr);
-  int argc = count_linked_list(args);
-  /* for (int i=0; i < argc; i++) {
+  pid_t pid = fork();
+  if (pid == 0) {
+    run_command(args_arr);
+  } else {
+    waitpid(pid, NULL, 0);
+  }
+  
+  /* int argc = count_linked_list(args);
+  for (int i=0; i < argc; i++) {
     printf("%s\n", args_arr[i]);
   } */
 
