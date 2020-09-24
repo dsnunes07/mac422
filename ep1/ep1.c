@@ -26,7 +26,6 @@ struct ProcessTrace {
 
 void print_linked_list(struct ProcessTrace* trace) {
   struct ProcessTrace* last = trace;
-  printf("Called print linked list");
   do {
     printf("\nProcess:\nname: %s", trace->current_process->name);
     printf("\nt0: %d", trace->current_process->arrival_time);
@@ -38,7 +37,26 @@ void print_linked_list(struct ProcessTrace* trace) {
   } while (trace->next != NULL);
 }
 
-void append_process(struct ProcessTrace** head, char* line) {
+void append_to_linked_list(struct ProcessTrace **head, struct Process* process) {
+  struct ProcessTrace* last = *head;
+  struct ProcessTrace* trace = malloc(sizeof(struct ProcessTrace*));
+  trace->current_process = process;
+  trace->next = NULL;
+  if (*head == NULL) {
+    *head = trace;
+    return;
+  }
+
+  while (last->next != NULL) {
+    last = last->next;
+  }
+  last->next = trace;
+  return;
+}
+
+/* Read a process from trace file and create a Process struct
+   with the data */
+struct Process* current_process(char* line) {
   // extract tokens from tracefile
   char* token;
   char *process_data[4];
@@ -47,7 +65,6 @@ void append_process(struct ProcessTrace** head, char* line) {
     process_data[i++] = token;
   }
   // allocates space for structs
-  struct ProcessTrace* trace = malloc(sizeof(struct ProcessTrace));
   struct Process* process = malloc(sizeof(struct Process));
   // assign members of Process with data from tokens extracted from Tracefile
   strcpy(process->name, process_data[0]);
@@ -55,36 +72,26 @@ void append_process(struct ProcessTrace** head, char* line) {
   process->dt = atoi(process_data[2]);
   process->deadline = atoi(process_data[3]);
   process->exec_time = 0;
-  // creates the current last node of list
-  trace->current_process = process;
-  trace->next = NULL;
-  // append last node on linked list
-  if (*head->current_process == NULL) {
-    *head = trace;
-  } else {
-    struct ProcessTrace* last = *head;
-    while (last->next != NULL) {
-      last = last->next;
-    }
-    last->next = trace;
-  }
+  return process;
 }
 
-// reads trace file and parses it to ProcessTrace linked list
-struct ProcessTrace* read_trace() {
+/* Build ProcessTrace linked list
+  returns head of linked list containing processes sorted by
+  arrival time*/
+struct ProcessTrace* read_tracefile() {
   FILE* trace_file = fopen(trace_filename, "r");
   if (trace_file == NULL) {
     printf("Could not open this tracefile: %s\n", trace_filename);
     exit(1);
   }
-  struct ProcessTrace* process_list = malloc(sizeof(struct ProcessTrace));
+  struct ProcessTrace* head = NULL;
   char line[MAX_LINE_LENGTH];
   while (fgets(line, sizeof(line), trace_file)) {
-    append_process(process_list, line);
-    printf("Name of heads current process: %s\n", process_list->current_process->name);
+    struct Process* process = current_process(line);
+    append_to_linked_list(&head, process);
   }
   fclose(trace_file);
-  return process_list;
+  return head;
 }
 
 // reads user input args
@@ -103,10 +110,7 @@ void read_args(int argc, char** argv) {
 
 int main(int argc, char** argv) {
   read_args(argc, argv);
-  struct ProcessTrace* trace = read_trace();
-  
-  //print_linked_list(trace);
-  printf("input: %d %s %s\n", scheduler, trace_filename, output_filename);
+  struct ProcessTrace* trace = read_tracefile();
   if (print_events) {
     printf("and I will print the events ;)\n");
   }
