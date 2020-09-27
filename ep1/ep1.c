@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+#include <unistd.h>
 
 #define MAX_LINE_LENGTH 128
 
@@ -24,6 +26,13 @@ struct ProcessTrace {
   struct ProcessTrace *next;
 };
 
+struct Simulation {
+  int seconds_elapsed;
+};
+
+// global simulator clock
+struct Simulation* simulation;
+
 void print_linked_list(struct ProcessTrace* trace) {
   struct ProcessTrace* last = trace;
   do {
@@ -37,6 +46,7 @@ void print_linked_list(struct ProcessTrace* trace) {
   } while (trace->next != NULL);
 }
 
+// Append a process to the end of a linked list pointed by head
 void append_to_linked_list(struct ProcessTrace **head, struct Process* process) {
   struct ProcessTrace* last = *head;
   struct ProcessTrace* trace = malloc(sizeof(struct ProcessTrace*));
@@ -52,6 +62,51 @@ void append_to_linked_list(struct ProcessTrace **head, struct Process* process) 
   }
   last->next = trace;
   return;
+}
+
+void *process_work(void *args) {
+  struct Process* process = (struct Process* ) args;
+  int dt = process->dt;
+  printf("Running %s\n", process->name);
+  int exec_time = 0;
+  while (dt - exec_time != 0) {
+    sleep(1);
+    simulation->seconds_elapsed++;
+    exec_time++;
+    printf("Current time: %d\n", simulation->seconds_elapsed);
+  }
+
+  process->exec_time = exec_time;
+  printf("finish executing %s at %d seconds\n", process->name, simulation->seconds_elapsed);
+}
+
+void fcfs(struct ProcessTrace* trace) {
+  // initialize a new clock for simulation
+  simulation = malloc(sizeof(struct Simulation*));
+  simulation->seconds_elapsed = 0;
+  
+  while (trace != NULL) {
+    struct Process* current_process = trace->current_process;
+    if (current_process->arrival_time <= simulation->seconds_elapsed) {
+      // execute current process until it finishes
+      pthread_t process_thread;
+      pthread_create(&process_thread, NULL, process_work, current_process);
+      pthread_join(process_thread, NULL);
+      printf("FCFS executed %s in %d seconds\n", current_process->name, current_process->exec_time);
+      // move forward on process trace
+      trace = trace->next;
+    } else {
+      // keep waiting for a new process
+      simulation->seconds_elapsed++;
+      sleep(1);
+    }
+  }
+}
+
+void simulate(struct ProcessTrace* trace) {
+  if (scheduler == 1) {
+    fcfs(trace);
+  }
 }
 
 /* Read a process from trace file and create a Process struct
@@ -77,7 +132,7 @@ struct Process* current_process(char* line) {
 
 /* Build ProcessTrace linked list
   returns head of linked list containing processes sorted by
-  arrival time*/
+  arrival time */
 struct ProcessTrace* read_tracefile() {
   FILE* trace_file = fopen(trace_filename, "r");
   if (trace_file == NULL) {
@@ -111,6 +166,7 @@ void read_args(int argc, char** argv) {
 int main(int argc, char** argv) {
   read_args(argc, argv);
   struct ProcessTrace* trace = read_tracefile();
+  simulate(trace);
   if (print_events) {
     printf("and I will print the events ;)\n");
   }
