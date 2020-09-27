@@ -18,45 +18,52 @@ struct Process {
   int arrival_time;
   int dt;
   int deadline;
+  int tf;
+  int tr;
   int exec_time;
 };
 // linked list of processes from tracefile
-struct ProcessTrace {
-  struct Process *current_process;
-  struct ProcessTrace *next;
+struct ProcessList {
+  struct Process *process;
+  struct ProcessList *next;
 };
 
 struct Simulation {
   int seconds_elapsed;
+  int context_switches;
 };
 
 // global simulator clock
 struct Simulation* simulation;
 
-void print_linked_list(struct ProcessTrace* trace) {
-  struct ProcessTrace* last = trace;
-  do {
-    printf("\nProcess:\nname: %s", trace->current_process->name);
-    printf("\nt0: %d", trace->current_process->arrival_time);
-    printf("\ndt: %d", trace->current_process->dt);
-    printf("\ndeadline: %d", trace->current_process->deadline);
-    printf("\nexec_time: %d", trace->current_process->exec_time);
-    last = trace;
-    trace = last->next;
-  } while (trace->next != NULL);
+// Mutexes
+pthread_mutex_t interrupt_process_mutex;
+
+int interrupt_running_process = 0;
+
+// Process list traversal to print current processes
+void print_linked_list(struct ProcessList* trace) {
+  while (trace != NULL) {
+    printf("\nProcess:\nname: %s", trace->process->name);
+    printf("\nt0: %d", trace->process->arrival_time);
+    printf("\ndt: %d", trace->process->dt);
+    printf("\ndeadline: %d", trace->process->deadline);
+    printf("\nexec_time: %d", trace->process->exec_time);
+    printf("\n%d\n", trace->next == NULL);
+    trace = trace->next;
+  }
 }
 
 // Append a process to the end of a linked list pointed by head
-void append_to_linked_list(struct ProcessTrace **head, struct Process* process) {
-  struct ProcessTrace* last = *head;
-  struct ProcessTrace* trace = malloc(sizeof(struct ProcessTrace*));
-  trace->current_process = process;
+void list_append(struct ProcessList **head, struct Process* process) {
+  struct ProcessList* last = *head;
+  struct ProcessList* trace = malloc(sizeof(struct ProcessList*));
+  trace->process = process;
   trace->next = NULL;
   if (*head == NULL) {
     *head = trace;
     return;
   }
-
   while (last->next != NULL) {
     last = last->next;
   }
@@ -64,37 +71,56 @@ void append_to_linked_list(struct ProcessTrace **head, struct Process* process) 
   return;
 }
 
+void list_push(struct ProcessList **head, struct Process* process) {
+  struct ProcessList* new_head = (struct ProcessList*) malloc(sizeof(struct ProcessList*));
+  new_head->process = process;
+  new_head->next = *head;
+  *head = new_head;
+}
+
+void *process_preemptive_work(void *args) {
+  struct Process* process = (struct Process*) args;
+  int exec_time = 0;
+  while (process->dt - process->exec_time != 0) {
+    sleep(1);
+    simulation->seconds_elapsed++;
+    process->exec_time++;
+    if (interrupt_running_process) {
+      pthread_mutex_lock(&interrupt_process_mutex);
+      interrupt_running_process = 0;
+      pthread_mutex_unlock(&interrupt_process_mutex);
+      break;
+    }
+  }
+}
+
 void *process_work(void *args) {
-  struct Process* process = (struct Process* ) args;
+  struct Process* process = (struct Process*) args;
   int dt = process->dt;
-  printf("Running %s\n", process->name);
   int exec_time = 0;
   while (dt - exec_time != 0) {
     sleep(1);
     simulation->seconds_elapsed++;
     exec_time++;
-    printf("Current time: %d\n", simulation->seconds_elapsed);
   }
-
+  // process finish executing
   process->exec_time = exec_time;
-  printf("finish executing %s at %d seconds\n", process->name, simulation->seconds_elapsed);
+  process->tf = simulation->seconds_elapsed;
+  process->tr = process->tf - process->arrival_time;
 }
 
-void fcfs(struct ProcessTrace* trace) {
-  // initialize a new clock for simulation
-  simulation = malloc(sizeof(struct Simulation*));
-  simulation->seconds_elapsed = 0;
-  
-  while (trace != NULL) {
-    struct Process* current_process = trace->current_process;
-    if (current_process->arrival_time <= simulation->seconds_elapsed) {
+// First come first served scheduling algorithm
+void fcfs(struct ProcessList* incoming) {
+  while (incoming != NULL) {
+    struct Process* process = incoming->process;
+    if (process->arrival_time <= simulation->seconds_elapsed) {
       // execute current process until it finishes
+      simulation->context_switches++;
       pthread_t process_thread;
-      pthread_create(&process_thread, NULL, process_work, current_process);
+      pthread_create(&process_thread, NULL, process_work, process);
       pthread_join(process_thread, NULL);
-      printf("FCFS executed %s in %d seconds\n", current_process->name, current_process->exec_time);
       // move forward on process trace
-      trace = trace->next;
+      incoming = incoming->next;
     } else {
       // keep waiting for a new process
       simulation->seconds_elapsed++;
@@ -103,14 +129,76 @@ void fcfs(struct ProcessTrace* trace) {
   }
 }
 
-void simulate(struct ProcessTrace* trace) {
-  if (scheduler == 1) {
-    fcfs(trace);
-  }
+int time_left(struct Process* p) {
+  return p->dt - p->exec_time;
 }
 
-/* Read a process from trace file and create a Process struct
-   with the data */
+int process_finished(struct Process* p) {
+  return p->exec_time == p->dt;
+}
+
+void srtn(struct ProcessList* incoming) {
+  struct ProcessList* ready = malloc(sizeof(struct ProcessList*));
+  struct Process* running = NULL;
+  pthread_mutex_init(&interrupt_process_mutex, NULL);
+  pthread_t running_thread;
+  // schedule while there are process left to run
+  while (incoming != NULL) {
+    // printf(">> %s %d s\n", running->name, simulation->seconds_elapsed);
+    // next process has arrived
+    if (incoming->process->arrival_time == simulation->seconds_elapsed) {
+      struct Process* next_proc = incoming->process;
+      // if a process is already running
+      if (running != NULL) {
+        // check if current process will replace the active process
+        if (next_proc->dt < (running->dt - running->exec_time)) {
+          pthread_mutex_lock(&interrupt_process_mutex);
+          interrupt_running_process = 1;
+          pthread_mutex_unlock(&interrupt_process_mutex);
+          pthread_create(&running_thread, NULL, process_preemptive_work, next_proc);
+          running = next_proc;
+        } 
+      } else {
+        pthread_create(&running_thread, NULL, process_preemptive_work, next_proc);
+        running = next_proc;
+      }
+      // once next process is handled, move forward on incoming list
+      incoming = incoming->next;
+    } else if (running == NULL) {
+      sleep(1);
+      simulation->seconds_elapsed++;
+    }
+  }
+  pthread_join(running_thread, NULL);
+}
+
+void print_output_file(struct ProcessList* trace) {
+  FILE *fp = fopen(output_filename, "w");
+  while (trace != NULL) {
+    struct Process *p = trace->process;
+    fprintf(fp, "%s %d %d\n", p->name, p->tf, p->tr);
+    trace = trace->next;
+  }
+  fprintf(fp, "%d", simulation->context_switches);
+  fclose(fp);
+}
+
+void simulate(struct ProcessList* trace) {
+  // initialize a new clock for simulation
+  simulation = malloc(sizeof(struct Simulation*));
+  simulation->seconds_elapsed = 0;
+  simulation->context_switches = 0;
+  if (scheduler == 1) {
+    fcfs(trace);
+  } else if (scheduler == 2) {
+    srtn(trace);
+  }
+
+  print_output_file(trace);
+}
+
+/* Read a process from trace file, create and returns a Process struct
+  containing its data */
 struct Process* current_process(char* line) {
   // extract tokens from tracefile
   char* token;
@@ -130,20 +218,20 @@ struct Process* current_process(char* line) {
   return process;
 }
 
-/* Build ProcessTrace linked list
+/* Build ProcessList linked list
   returns head of linked list containing processes sorted by
   arrival time */
-struct ProcessTrace* read_tracefile() {
+struct ProcessList* read_tracefile() {
   FILE* trace_file = fopen(trace_filename, "r");
   if (trace_file == NULL) {
     printf("Could not open this tracefile: %s\n", trace_filename);
     exit(1);
   }
-  struct ProcessTrace* head = NULL;
+  struct ProcessList* head = NULL;
   char line[MAX_LINE_LENGTH];
   while (fgets(line, sizeof(line), trace_file)) {
     struct Process* process = current_process(line);
-    append_to_linked_list(&head, process);
+    list_append(&head, process);
   }
   fclose(trace_file);
   return head;
@@ -165,8 +253,8 @@ void read_args(int argc, char** argv) {
 
 int main(int argc, char** argv) {
   read_args(argc, argv);
-  struct ProcessTrace* trace = read_tracefile();
-  simulate(trace);
+  struct ProcessList* processes = read_tracefile();
+  simulate(processes);
   if (print_events) {
     printf("and I will print the events ;)\n");
   }
