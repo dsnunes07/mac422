@@ -7,6 +7,13 @@
 
 #define MAX_LINE_LENGTH 128
 
+// define flags to identify scheduler events
+#define PROCESS_ARRIVED 0
+#define PROCESS_RELEASED 1
+#define PROCESS_INTERRUPTED 2
+#define PROCESS_FINISHED 3
+#define CONTEXT_SWITCH 4
+
 // user input args
 int scheduler;
 char* trace_filename;
@@ -82,20 +89,25 @@ void list_push(struct ProcessList **head, struct Process* process) {
   *head = new_head;
 }
 
+int time_left(struct Process* p) {
+  return p->dt - p->exec_time;
+}
+
 void list_insert_by_time_left(struct ProcessList **head, struct Process* process) {
-  struct ProcessList* list_pointer = *head;
-  struct ProcessList* new_proc = malloc(sizeof(struct ProcessList*));
-  new_proc->process = process;
-  if (list_pointer == NULL || list_pointer->process->dt >= new_proc->process->dt) {
-    new_proc->next = *head;
-    *head = new_proc;
+  struct ProcessList* current;
+  struct ProcessList* new_process = malloc(sizeof(struct ProcessList*));
+  new_process->process = process;
+  new_process->next = NULL;
+  if ((*head)->process == NULL || time_left((*head)->process) >= time_left(process)) {
+    new_process->next = *head;
+    *head = new_process;
   } else {
-    list_pointer = *head;
-    while (list_pointer->next != NULL && list_pointer->process->dt > new_proc->process->dt) {
-      list_pointer = list_pointer->next;
+    current = *head;
+    while (current->next != NULL && time_left(current->process) < time_left((*head)->process)) {
+      current = current->next;
     }
-    new_proc->next = list_pointer->next;
-    list_pointer->next = new_proc;
+    new_process->next = current->next;
+    current->next = new_process;
   }
 }
 
@@ -108,9 +120,20 @@ struct Process* list_pop(struct ProcessList **head) {
   struct Process* p = first_element->process;
   // makes first element the next of the first
   *head = (*head)->next;
-  // free head ref
-  free(first_element);
   return p;
+}
+
+void print_events_to_stderr(int event, struct Process* p1, struct Process* p2) {
+  if (print_events == 0)
+    return;
+
+  switch (event) {
+  case PROCESS_ARRIVED:
+    fprintf(stderr, "Chegou no sistema: '%s %d %d %d'", p1->name, p1->arrival_time, p1->dt, p1->deadline);
+    break;
+  default:
+    break;
+  }
 }
 
 void *preemptive_worker(void *args) {
@@ -168,10 +191,6 @@ void fcfs(struct ProcessList* incoming) {
       sleep(1);
     }
   }
-}
-
-int time_left(struct Process* p) {
-  return p->dt - p->exec_time;
 }
 
 int process_finished(struct Process* p) {
@@ -241,7 +260,7 @@ int advance_one_second() {
 void srtn(struct ProcessList* incoming) {
   /* list containing processes which have arrived and
   are waiting to run */
-  struct ProcessList* ready = NULL;
+  struct ProcessList* ready = malloc(sizeof(struct ProcessList*));
   
   // scheduler clock variable
   int local_time = 0;
@@ -290,6 +309,7 @@ void srtn(struct ProcessList* incoming) {
     }
   } else {
     if (arrived != NULL) {
+      print_events_to_stderr(PROCESS_ARRIVED, arrived, NULL);
       struct Process* next_ready = list_pop(&ready);
       if (next_ready != NULL && next_ready->dt < arrived->dt) {
         list_insert_by_time_left(&ready, arrived);
