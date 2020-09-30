@@ -3,9 +3,10 @@
 #include <string.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
 
 #define MAX_LINE_LENGTH 128
-#define QUANTUM 0.05
+#define QUANTUM 1
 
 // user input args
 int scheduler;
@@ -37,7 +38,7 @@ struct ProcessTrace
 
 struct Simulation
 {
-  int time_elapsed;
+  float time_elapsed;
 };
 
 // global simulator clock
@@ -46,38 +47,65 @@ struct Simulation *simulation;
 // Helpers
 void print_queue()
 {
+  int i, j;
+  struct Process *process;
   printf("[");
 
-  for (int i = 0; i <= rear; i++)
+  if (front <= rear)
   {
-    struct Process *process = exec_queue[i];
-
-    printf("%s, ", &process->name);
+    for (i = front; i <= rear; i++)
+    {
+      process = exec_queue[i];
+      printf("%s, ", &process->name);
+    }
+    printf("]+\n");
   }
-  printf("]\n");
+  else
+  {
+    for (i = front; i <= trace_size - 1; i++)
+    {
+      process = exec_queue[i];
+      printf("%s, ", &process->name);
+    }
+
+    for (j = 0; j <= rear; j++)
+    {
+      process = exec_queue[j];
+      printf("%s, ", &process->name);
+    }
+    printf("]*\n");
+  }
+}
+
+int isQueueFull()
+{
+  if ((front == rear + 1) || front == 0 && rear == trace_size - 1)
+    return 1;
+  else
+  {
+    return 0;
+  }
 }
 
 void enqueue_process(struct Process *process)
 {
   printf("\nColocando na fila...");
 
-  if ((front == rear + 1) || front == 0 && rear == trace_size - 1)
+  if (isQueueFull())
     printf("Fila circular cheia!");
 
   else
   {
-
     if (front == -1)
       front = 0;
     rear = (rear + 1) % trace_size;
     exec_queue[rear] = process;
     printf("|%s|, t0 = %d, dt = %d, deadline = %d, exectime = %f\n", process->name, process->arrival_time, process->dt, process->deadline, process->exec_time);
-    printf("\natualmente a fila esta assim: ");
-    print_queue();
   }
 }
 struct Process *dequeue_process()
 {
+  printf("\nTirando da fila...");
   struct Process *process = exec_queue[front];
   if (front == -1)
   {
@@ -86,8 +114,8 @@ struct Process *dequeue_process()
   }
   else
   {
-    printf("Item deletado da fila: %s\n\n", process->name);
     front = (front + 1) % trace_size;
+    printf("|%s|", process->name);
     return process;
   }
 }
@@ -189,29 +217,52 @@ void fcfs(struct ProcessTrace *trace)
 struct ProcessTrace *trace_to_queue(struct ProcessTrace *trace, struct Process *exec_queue)
 {
   struct Process *current_process = trace->current_process;
-  printf("\n\n***tempo atual = %d***\n", simulation->time_elapsed);
-
-  while (current_process->arrival_time <= simulation->time_elapsed)
+  while (current_process != NULL && current_process->arrival_time <= simulation->time_elapsed && !isQueueFull())
   {
     enqueue_process(current_process);
-    trace = trace->next;
-    current_process = trace->current_process;
-    // getchar();
+    if (trace->next != NULL)
+    {
+      trace = trace->next;
+      current_process = trace->current_process;
+    }
+    else
+    {
+      trace = NULL;
+      current_process = NULL;
+    }
   }
   return trace;
 }
 
 void round_robin(struct ProcessTrace *trace)
 {
+  int finished_processes = 0;
   trace_size = count_linked_list(trace);
   exec_queue = calloc(trace_size, sizeof(struct Process *));
   simulation = malloc(sizeof(struct Simulation *));
   simulation->time_elapsed = 0;
+  struct timespec ts;
+  ts.tv_sec = 0;
+  ts.tv_nsec = 500000000;
 
-  while (simulation->time_elapsed <= 17)
+  while (finished_processes < trace_size)
   {
-    trace = trace_to_queue(trace, *exec_queue);
-    simulation->time_elapsed++;
+    printf("\n\n*** tempo atual = %f ***\n\n", simulation->time_elapsed);
+    if (trace != NULL)
+    {
+      trace = trace_to_queue(trace, *exec_queue);
+    }
+    printf("Fila de execução: ");
+    print_queue();
+    // nanosleep(500);
+    nanosleep(&ts, NULL);
+
+    if (simulation->time_elapsed == 15)
+    {
+      struct Process *processoTeste = dequeue_process();
+      enqueue_process(processoTeste);
+    }
+    simulation->time_elapsed = simulation->time_elapsed + QUANTUM;
   }
 }
 
