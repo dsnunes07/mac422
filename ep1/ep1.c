@@ -156,7 +156,6 @@ void *time_pass(void *args) {
   while (1) {
     pthread_mutex_lock(&clock_mutex);
     simulation->seconds_elapsed++;
-    printf("seconds elapsed: %d\n", simulation->seconds_elapsed);
     pthread_mutex_unlock(&clock_mutex);
     sleep(1);
   }
@@ -166,7 +165,6 @@ void *time_pass(void *args) {
 int get_current_time() {
   int time = 0;
   // pthread_mutex_lock(&clock_mutex);
-  printf("what time is it? its %d\n", simulation->seconds_elapsed);
   time = simulation->seconds_elapsed;
   // pthread_mutex_unlock(&clock_mutex);
   return time;
@@ -305,7 +303,7 @@ void srtn(struct ProcessList* incoming) {
   while (incoming != NULL || ready != NULL || running != NULL) {
     pthread_mutex_lock(&clock_mutex);
     local_time = get_current_time();
-    printf("time: %d\n", local_time);
+    // printf("time: %d\n", local_time);
     if (running != NULL) {
       running->exec_time++;
       running->tf = local_time;
@@ -473,7 +471,7 @@ int main(int argc, char** argv) {
   struct ProcessList* processes = read_tracefile();
   simulate(processes);
   if (print_events) {
-    printf("and I will print the events ;)\n");
+    printf("Fim da execução. Dados salvos no arquivo %s\n", output_filename);
   }
   return 0;
 }
