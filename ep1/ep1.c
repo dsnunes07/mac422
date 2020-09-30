@@ -15,7 +15,7 @@ int print_events = 0;
 
 //auxiliar
 int trace_size;
-struct Process *exec_queue; // circular queue to maintain the processes in execution (for Round-Robin scheduler)
+struct Process **exec_queue; // circular queue to maintain the processes in execution (for Round-Robin scheduler)
 int rear = -1;
 int front = -1;
 
@@ -44,6 +44,19 @@ struct Simulation
 struct Simulation *simulation;
 
 // Helpers
+void print_queue()
+{
+  printf("[");
+
+  for (int i = 0; i <= rear; i++)
+  {
+    struct Process *process = exec_queue[i];
+
+    printf("%s, ", &process->name);
+  }
+  printf("]\n");
+}
+
 void enqueue_process(struct Process *process)
 {
   printf("\nColocando na fila...");
@@ -57,15 +70,15 @@ void enqueue_process(struct Process *process)
     if (front == -1)
       front = 0;
     rear = (rear + 1) % trace_size;
-    exec_queue[rear] = *process;
+    exec_queue[rear] = process;
     printf("|%s|, t0 = %d, dt = %d, deadline = %d, exectime = %f\n", process->name, process->arrival_time, process->dt, process->deadline, process->exec_time);
-    printf("\natualmente a fila esta assim \n");
+    printf("\natualmente a fila esta assim: ");
     print_queue();
   }
 }
 struct Process *dequeue_process()
 {
-  struct Process *process = &exec_queue[front];
+  struct Process *process = exec_queue[front];
   if (front == -1)
   {
     printf("Underflow!");
@@ -77,19 +90,6 @@ struct Process *dequeue_process()
     front = (front + 1) % trace_size;
     return process;
   }
-}
-
-void print_queue()
-{
-  printf("[");
-
-  for (int i = 0; i <= rear; i++)
-  {
-    struct Process *process = &exec_queue[i];
-
-    printf("%s, ", process->name);
-  }
-  printf("]\n");
 }
 
 int count_linked_list(struct ProcessTrace *trace)
@@ -189,14 +189,10 @@ void fcfs(struct ProcessTrace *trace)
 struct ProcessTrace *trace_to_queue(struct ProcessTrace *trace, struct Process *exec_queue)
 {
   struct Process *current_process = trace->current_process;
-
-  printf("\n***tempo atual = %d***\n", simulation->time_elapsed);
-  // printf("t0 do %s atual: %d\n", current_process->name, current_process->arrival_time);
+  printf("\n\n***tempo atual = %d***\n", simulation->time_elapsed);
 
   while (current_process->arrival_time <= simulation->time_elapsed)
   {
-    // printf("|%s|, t0 = %d, dt = %d, deadline = %d, exectime = %f\n", current_process->name, current_process->arrival_time, current_process->dt, current_process->deadline, current_process->exec_time);
-
     enqueue_process(current_process);
     trace = trace->next;
     current_process = trace->current_process;
@@ -208,17 +204,15 @@ struct ProcessTrace *trace_to_queue(struct ProcessTrace *trace, struct Process *
 void round_robin(struct ProcessTrace *trace)
 {
   trace_size = count_linked_list(trace);
-    exec_queue = calloc(trace_size, sizeof(struct Process));
+  exec_queue = calloc(trace_size, sizeof(struct Process *));
   simulation = malloc(sizeof(struct Simulation *));
   simulation->time_elapsed = 0;
 
   while (simulation->time_elapsed <= 17)
   {
-    // printf("\nmDEBUGANDO MONSTRO TIME = %d\n", simulation->time_elapsed);
-    trace = trace_to_queue(trace, exec_queue);
+    trace = trace_to_queue(trace, *exec_queue);
     simulation->time_elapsed++;
   }
-  // print_queue();
 }
 
 void simulate(struct ProcessTrace *trace)
@@ -297,7 +291,6 @@ void read_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-  printf("sizeof struct process = %d\n sizeof struct process* = %d", sizeof(struct Process), sizeof(struct Process*));
   read_args(argc, argv);
   struct ProcessTrace *trace = read_tracefile();
   simulate(trace);
