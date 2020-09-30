@@ -46,6 +46,7 @@ struct Simulation {
 };
 
 pthread_mutex_t clock_mutex;
+pthread_mutex_t stop_clock;
 
 // global simulator clock
 struct Simulation* simulation;
@@ -151,26 +152,40 @@ void print_events_to_stderr(int event, int time, struct Process* p1, struct Proc
   }
 }
 
+void *time_pass(void *args) {
+  while (1) {
+    pthread_mutex_lock(&clock_mutex);
+    simulation->seconds_elapsed++;
+    printf("seconds elapsed: %d\n", simulation->seconds_elapsed);
+    pthread_mutex_unlock(&clock_mutex);
+    sleep(1);
+  }
+  return NULL;
+}
+
+int get_current_time() {
+  int time = 0;
+  pthread_mutex_lock(&clock_mutex);
+  printf("what time is it? its %d\n", simulation->seconds_elapsed);
+  time = simulation->seconds_elapsed;
+  pthread_mutex_unlock(&clock_mutex);
+  return time;
+}
+
 void *preemptive_worker(void *args) {
   struct Process* process = (struct Process*) args;
-  // process executes until the end
   int seconds_elapsed = 0;
+
+  // process executes until the end
   while(time_left(process) > 0) {
     // but it can be interrupted
     pthread_mutex_lock(&(process->interrupt));
-    // ask scheduler what time is it?
-    pthread_mutex_lock(&clock_mutex);
-    print_events_to_stderr(PROCESS_RELEASED, simulation->seconds_elapsed, process, NULL);
-    seconds_elapsed = simulation->seconds_elapsed;
-    // printf("running %s time: %d s\n", process->name, seconds_elapsed);
-    process->exec_time++;
-    process->tf = seconds_elapsed;
-    pthread_mutex_unlock(&clock_mutex);
-    pthread_mutex_unlock(&(process->interrupt));
     sleep(1);
+    // seconds_elapsed = get_current_time();
+    print_events_to_stderr(PROCESS_RELEASED, seconds_elapsed, process, NULL);
+    pthread_mutex_unlock(&(process->interrupt));
   }
   process->tr = process->tf - process->arrival_time;
-  // printf("%s encerrou seu trabalho\n", process->name);
   return NULL;
 }
 
@@ -265,20 +280,13 @@ struct Process* get_shortest_process_at_time(int clock_time, struct ProcessList 
   return shortest_process;
 }
 
-int advance_one_second() {
-  pthread_mutex_lock(&clock_mutex);
-  sleep(1);
-  simulation->seconds_elapsed++;
-  pthread_mutex_unlock(&clock_mutex);
-  return simulation->seconds_elapsed;
-}
-
 void srtn(struct ProcessList* incoming) {
   /* list containing processes which have arrived and
   are waiting to run */
   struct ProcessList* ready = NULL;
   
   // scheduler clock variable
+  int previous_time = 0;
   int local_time = 0;
 
   /* start threads of every incoming processes,
@@ -290,77 +298,77 @@ void srtn(struct ProcessList* incoming) {
   // shortest process arrived at current time
   struct Process* arrived = NULL;
 
+  pthread_t clock_thread;
+  pthread_create(&clock_thread, NULL, time_pass, NULL);
   // while exists processes waiting to run
   while (incoming != NULL || ready != NULL || running != NULL) {
-  // receive a process which may have arrived
-  arrived = get_shortest_process_at_time(local_time, &incoming, &ready);
-  
-  // check if a running process has finished
-  if (running != NULL && process_finished(running)) {
-    // let thread exit if necessary
-    release_process(running);
-    // // printf("processo %s liberado para terminar\n", running->name);
-    wait_finish(running);
-    // print to stderr if user requested
-    print_events_to_stderr(PROCESS_FINISHED, simulation->seconds_elapsed, running, NULL);
-    // process is no longer running
-    running = NULL;
-  }
-
-  if (running != NULL) {
-    // interrupt current process
-    interrupt_process(running);
-    // printf("processo %s interrompido\n", running->name);
+    printf("time: %d\n", local_time);
+    // receive a process which may have arrived
+    arrived = get_shortest_process_at_time(local_time, &incoming, &ready);
     
-    // if no process has arrived
-    if (arrived == NULL) {
-      // process can continue running
+    // check if a running process has finished
+    if (running != NULL && process_finished(running)) {
+      // let thread exit if necessary
       release_process(running);
-      // printf("processo %s liberado\n", running->name);
-      // if new process is shortest than currently running process
-    } else if (arrived->dt < time_left(running)) {
-      list_insert_by_time_left(&ready, running);
-      print_events_to_stderr(PROCESS_INTERRUPTED, simulation->seconds_elapsed, running, arrived);
-      release_process(arrived);
-      // printf("processo %s liberado\n", arrived->name);
-      running = arrived;
-      simulation->context_switches++;
-    } else {
-      // current process still faster than the new one
-      list_insert_by_time_left(&ready, arrived);
-      release_process(running);
-      // printf("processo %s liberado\n", running->name);
+      // // printf("processo %s liberado para terminar\n", running->name);
+      wait_finish(running);
+      // print to stderr if user requested
+      print_events_to_stderr(PROCESS_FINISHED, simulation->seconds_elapsed, running, NULL);
+      // process is no longer running
+      running = NULL;
     }
-  } else {
-    if (arrived != NULL) {
-      struct Process* next_ready = list_pop(&ready);
-      if (next_ready != NULL && next_ready->dt < arrived->dt) {
-        list_insert_by_time_left(&ready, arrived);
-        release_process(next_ready);
-        // printf("processo %s liberado\n", next_ready->name);
-        running = next_ready;
-        simulation->context_switches++;
-      } else {
-        list_insert_by_time_left(&ready, next_ready);
+
+    if (running != NULL) {
+      // interrupt current process
+      interrupt_process(running);
+      // printf("processo %s interrompido\n", running->name);
+      
+      // if no process has arrived
+      if (arrived == NULL) {
+        // process can continue running
+        release_process(running);
+        // printf("processo %s liberado\n", running->name);
+        // if new process is shortest than currently running process
+      } else if (arrived->dt < time_left(running)) {
+        list_insert_by_time_left(&ready, running);
+        print_events_to_stderr(PROCESS_INTERRUPTED, simulation->seconds_elapsed, running, arrived);
         release_process(arrived);
         // printf("processo %s liberado\n", arrived->name);
         running = arrived;
         simulation->context_switches++;
+      } else {
+        // current process still faster than the new one
+        list_insert_by_time_left(&ready, arrived);
+        release_process(running);
+        // printf("processo %s liberado\n", running->name);
       }
     } else {
-      struct Process* next_ready = list_pop(&ready);
-      if (next_ready != NULL) {
-        release_process(next_ready);
-        // printf("processo %s liberado\n", next_ready->name);
-        running = next_ready;
-        simulation->context_switches++;
+      if (arrived != NULL) {
+        struct Process* next_ready = list_pop(&ready);
+        if (next_ready != NULL && next_ready->dt < arrived->dt) {
+          list_insert_by_time_left(&ready, arrived);
+          release_process(next_ready);
+          // printf("processo %s liberado\n", next_ready->name);
+          running = next_ready;
+          simulation->context_switches++;
+        } else {
+          list_insert_by_time_left(&ready, next_ready);
+          release_process(arrived);
+          // printf("processo %s liberado\n", arrived->name);
+          running = arrived;
+          simulation->context_switches++;
+        }
+      } else {
+        struct Process* next_ready = list_pop(&ready);
+        if (next_ready != NULL) {
+          release_process(next_ready);
+          // printf("processo %s liberado\n", next_ready->name);
+          running = next_ready;
+          simulation->context_switches++;
+        }
       }
     }
-  }
-
-  // advance a time unit before wait for a short amount of time to thread synchronize with the clock
-  usleep(50000);
-  local_time = advance_one_second();
+    //local_time = get_current_time();
   }
 }
 
@@ -380,6 +388,7 @@ void simulate(struct ProcessList* trace) {
   simulation = malloc(sizeof(struct Simulation*));
   simulation->seconds_elapsed = 0;
   simulation->context_switches = 0;
+  // pthread_mutex_init(&stop_clock, NULL);
   pthread_mutex_init(&clock_mutex, NULL);
   if (scheduler == 1) {
     fcfs(trace);
