@@ -98,7 +98,7 @@ void list_insert_by_time_left(struct ProcessList **head, struct Process* process
   struct ProcessList* new_process = malloc(sizeof(struct ProcessList*));
   new_process->process = process;
   new_process->next = NULL;
-  if ((*head)->process == NULL || time_left((*head)->process) >= time_left(process)) {
+  if (*head == NULL || time_left((*head)->process) >= time_left(process)) {
     new_process->next = *head;
     *head = new_process;
   } else {
@@ -113,8 +113,10 @@ void list_insert_by_time_left(struct ProcessList **head, struct Process* process
 
 // Removes and returns the first Process of a processlist
 struct Process* list_pop(struct ProcessList **head) {
-  if (*head == NULL)
+  if (*head == NULL) {
     return NULL;
+  }
+    
   // get the first element
   struct ProcessList* first_element = *head;
   struct Process* p = first_element->process;
@@ -123,13 +125,23 @@ struct Process* list_pop(struct ProcessList **head) {
   return p;
 }
 
-void print_events_to_stderr(int event, struct Process* p1, struct Process* p2) {
+// print events to stderr if user has passed "-d" as command line argument
+void print_events_to_stderr(int event, int time, struct Process* p1, struct Process* p2) {
   if (print_events == 0)
     return;
 
   switch (event) {
   case PROCESS_ARRIVED:
-    fprintf(stderr, "Chegou no sistema: '%s %d %d %d'", p1->name, p1->arrival_time, p1->dt, p1->deadline);
+    fprintf(stderr, "[%ds] Chegou no sistema: '%s %d %d %d'\n", time, p1->name, p1->arrival_time, p1->dt, p1->deadline);
+    break;
+  case PROCESS_RELEASED:
+    fprintf(stderr, "[%ds] %s está executando, tempo restante: %ds\n", time, p1->name, time_left(p1));
+    break;
+  case PROCESS_INTERRUPTED:
+    fprintf(stderr, "[%ds] Processo %s (tempo restante: %ds) foi substituído por %s (tempo restante: %ds)\n", time, p1->name, time_left(p1), p2->name, time_left(p2));
+    break;
+  case PROCESS_FINISHED:
+    fprintf(stderr, "[%ds] %s terminou de executar no instante %d s (saída: %s %d %d)\n", time, p1->name, p1->tf, p1->name, p1->tf, p1->tr);
     break;
   default:
     break;
@@ -140,21 +152,22 @@ void *preemptive_worker(void *args) {
   struct Process* process = (struct Process*) args;
   // process executes until the end
   int seconds_elapsed = 0;
-  while((process->dt - process->exec_time) > 0) {
+  while(time_left(process) > 0) {
     // but it can be interrupted
     pthread_mutex_lock(&(process->interrupt));
     // ask scheduler what time is it?
     pthread_mutex_lock(&clock_mutex);
+    print_events_to_stderr(PROCESS_RELEASED, simulation->seconds_elapsed, process, NULL);
     seconds_elapsed = simulation->seconds_elapsed;
-    printf("running %s time: %d s\n", process->name, seconds_elapsed);
+    // printf("running %s time: %d s\n", process->name, seconds_elapsed);
     process->exec_time++;
     process->tf = seconds_elapsed;
-    process->tr = process->tf - process->arrival_time;
     pthread_mutex_unlock(&clock_mutex);
     pthread_mutex_unlock(&(process->interrupt));
     sleep(1);
   }
-  printf("%s encerrou seu trabalho\n", process->name);
+  process->tr = process->tf - process->arrival_time;
+  // printf("%s encerrou seu trabalho\n", process->name);
   return NULL;
 }
 
@@ -208,14 +221,13 @@ void start_threads(struct ProcessList* incoming) {
 void interrupt_process(struct Process* p) {
   if (p == NULL)
     return;
-  
+
   pthread_mutex_lock(&(p->interrupt));
 }
 
 void release_process(struct Process* p) {
   if (p == NULL)
     return;
-
   pthread_mutex_unlock(&(p->interrupt));
 }
 
@@ -233,6 +245,7 @@ struct Process* get_shortest_process_at_time(int clock_time, struct ProcessList 
   struct Process* shortest_process = NULL;
   while (*incoming != NULL && (*incoming)->process->arrival_time == clock_time) {
     struct Process* p = (*incoming)->process;
+    print_events_to_stderr(PROCESS_ARRIVED, clock_time, p, NULL);
     // gets only the first shortest process
     if (p->dt < min_dt) {
       // stores the previous shortest process if a faster one has been found
@@ -260,7 +273,7 @@ int advance_one_second() {
 void srtn(struct ProcessList* incoming) {
   /* list containing processes which have arrived and
   are waiting to run */
-  struct ProcessList* ready = malloc(sizeof(struct ProcessList*));
+  struct ProcessList* ready = NULL;
   
   // scheduler clock variable
   int local_time = 0;
@@ -283,7 +296,10 @@ void srtn(struct ProcessList* incoming) {
   if (running != NULL && process_finished(running)) {
     // let thread exit if necessary
     release_process(running);
+    // // printf("processo %s liberado para terminar\n", running->name);
     wait_finish(running);
+    // print to stderr if user requested
+    print_events_to_stderr(PROCESS_FINISHED, simulation->seconds_elapsed, running, NULL);
     // process is no longer running
     running = NULL;
   }
@@ -291,34 +307,40 @@ void srtn(struct ProcessList* incoming) {
   if (running != NULL) {
     // interrupt current process
     interrupt_process(running);
+    // printf("processo %s interrompido\n", running->name);
     
     // if no process has arrived
     if (arrived == NULL) {
       // process can continue running
       release_process(running);
+      // printf("processo %s liberado\n", running->name);
       // if new process is shortest than currently running process
     } else if (arrived->dt < time_left(running)) {
       list_insert_by_time_left(&ready, running);
+      print_events_to_stderr(PROCESS_INTERRUPTED, simulation->seconds_elapsed, running, arrived);
       release_process(arrived);
+      // printf("processo %s liberado\n", arrived->name);
       running = arrived;
       simulation->context_switches++;
     } else {
       // current process still faster than the new one
       list_insert_by_time_left(&ready, arrived);
       release_process(running);
+      // printf("processo %s liberado\n", running->name);
     }
   } else {
     if (arrived != NULL) {
-      print_events_to_stderr(PROCESS_ARRIVED, arrived, NULL);
       struct Process* next_ready = list_pop(&ready);
       if (next_ready != NULL && next_ready->dt < arrived->dt) {
         list_insert_by_time_left(&ready, arrived);
         release_process(next_ready);
+        // printf("processo %s liberado\n", next_ready->name);
         running = next_ready;
         simulation->context_switches++;
       } else {
         list_insert_by_time_left(&ready, next_ready);
         release_process(arrived);
+        // printf("processo %s liberado\n", arrived->name);
         running = arrived;
         simulation->context_switches++;
       }
@@ -326,13 +348,15 @@ void srtn(struct ProcessList* incoming) {
       struct Process* next_ready = list_pop(&ready);
       if (next_ready != NULL) {
         release_process(next_ready);
+        // printf("processo %s liberado\n", next_ready->name);
         running = next_ready;
         simulation->context_switches++;
       }
     }
   }
 
-  // advance a time unit
+  // advance a time unit before wait for a short amount of time to thread synchronize with the clock
+  usleep(50000);
   local_time = advance_one_second();
   }
 }
