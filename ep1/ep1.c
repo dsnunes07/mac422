@@ -165,10 +165,10 @@ void *time_pass(void *args) {
 
 int get_current_time() {
   int time = 0;
-  pthread_mutex_lock(&clock_mutex);
+  // pthread_mutex_lock(&clock_mutex);
   printf("what time is it? its %d\n", simulation->seconds_elapsed);
   time = simulation->seconds_elapsed;
-  pthread_mutex_unlock(&clock_mutex);
+  // pthread_mutex_unlock(&clock_mutex);
   return time;
 }
 
@@ -180,10 +180,11 @@ void *preemptive_worker(void *args) {
   while(time_left(process) > 0) {
     // but it can be interrupted
     pthread_mutex_lock(&(process->interrupt));
-    sleep(1);
-    // seconds_elapsed = get_current_time();
+    seconds_elapsed = get_current_time();
     print_events_to_stderr(PROCESS_RELEASED, seconds_elapsed, process, NULL);
     pthread_mutex_unlock(&(process->interrupt));
+
+    sleep(1);
   }
   process->tr = process->tf - process->arrival_time;
   return NULL;
@@ -302,7 +303,13 @@ void srtn(struct ProcessList* incoming) {
   pthread_create(&clock_thread, NULL, time_pass, NULL);
   // while exists processes waiting to run
   while (incoming != NULL || ready != NULL || running != NULL) {
+    pthread_mutex_lock(&clock_mutex);
+    local_time = get_current_time();
     printf("time: %d\n", local_time);
+    if (running != NULL) {
+      running->exec_time++;
+      running->tf = local_time;
+    }
     // receive a process which may have arrived
     arrived = get_shortest_process_at_time(local_time, &incoming, &ready);
     
@@ -368,7 +375,8 @@ void srtn(struct ProcessList* incoming) {
         }
       }
     }
-    //local_time = get_current_time();
+    pthread_mutex_unlock(&clock_mutex);
+    sleep(1);
   }
 }
 
