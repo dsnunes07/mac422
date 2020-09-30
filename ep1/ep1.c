@@ -90,6 +90,9 @@ void list_push(struct ProcessList **head, struct Process* process) {
 }
 
 int time_left(struct Process* p) {
+  if (p == NULL)
+    return 0;
+
   return p->dt - p->exec_time;
 }
 
