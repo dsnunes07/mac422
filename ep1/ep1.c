@@ -46,7 +46,8 @@ struct Simulation {
 };
 
 pthread_mutex_t clock_mutex;
-pthread_mutex_t stop_clock;
+pthread_mutex_t scheduler_mutex;
+
 
 // global simulator clock
 struct Simulation* simulation;
@@ -154,10 +155,14 @@ void print_events_to_stderr(int event, int time, struct Process* p1, struct Proc
 
 void *time_pass(void *args) {
   while (1) {
-    pthread_mutex_lock(&clock_mutex);
-    simulation->seconds_elapsed++;
-    pthread_mutex_unlock(&clock_mutex);
+    printf("clock sleeping... %d\n", simulation->seconds_elapsed);
     sleep(1);
+    // stop scheduler before advancing time
+    pthread_mutex_lock(&scheduler_mutex);
+    printf("Clock woke up on critical section %d\n", simulation->seconds_elapsed);
+    simulation->seconds_elapsed++;
+    // release scheduler after update current time and sleep for one second
+    pthread_mutex_unlock(&scheduler_mutex);
   }
   return NULL;
 }
@@ -178,11 +183,7 @@ void *preemptive_worker(void *args) {
   while(time_left(process) > 0) {
     // but it can be interrupted
     pthread_mutex_lock(&(process->interrupt));
-    seconds_elapsed = get_current_time();
-    print_events_to_stderr(PROCESS_RELEASED, seconds_elapsed, process, NULL);
     pthread_mutex_unlock(&(process->interrupt));
-
-    sleep(1);
   }
   process->tr = process->tf - process->arrival_time;
   return NULL;
@@ -301,12 +302,16 @@ void srtn(struct ProcessList* incoming) {
   pthread_create(&clock_thread, NULL, time_pass, NULL);
   // while exists processes waiting to run
   while (incoming != NULL || ready != NULL || running != NULL) {
-    pthread_mutex_lock(&clock_mutex);
+    pthread_mutex_lock(&scheduler_mutex);
+    printf("Scheduler woke up on critical section %d\n", get_current_time());
     local_time = get_current_time();
+    printf("local time = %d\n", local_time);
     // printf("time: %d\n", local_time);
     if (running != NULL) {
+      printf("Updates running thread");
       running->exec_time++;
       running->tf = local_time;
+      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
     }
     // receive a process which may have arrived
     arrived = get_shortest_process_at_time(local_time, &incoming, &ready);
@@ -373,8 +378,10 @@ void srtn(struct ProcessList* incoming) {
         }
       }
     }
-    pthread_mutex_unlock(&clock_mutex);
-    sleep(1);
+    pthread_mutex_unlock(&scheduler_mutex);
+    printf("Scheduler sleeping...\n");
+    // pthread_mutex_unlock(&scheduler_mutex);
+    usleep(0.7*1000000);
   }
 }
 
@@ -395,7 +402,7 @@ void simulate(struct ProcessList* trace) {
   simulation->seconds_elapsed = 0;
   simulation->context_switches = 0;
   // pthread_mutex_init(&stop_clock, NULL);
-  pthread_mutex_init(&clock_mutex, NULL);
+  pthread_mutex_init(&scheduler_mutex, NULL);
   if (scheduler == 1) {
     fcfs(trace);
   } else if (scheduler == 2) {
