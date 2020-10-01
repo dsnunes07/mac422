@@ -154,12 +154,17 @@ void print_events_to_stderr(int event, int time, struct Process* p1, struct Proc
   }
 }
 
+
+void sleep_for(double sec) {
+  usleep(sec*1000000);
+}
+
 void *time_pass(void *args) {
   while (1) {
     pthread_mutex_lock(&scheduler_mutex);
     pthread_cond_wait(&scheduler_worked, &scheduler_mutex);
     simulation->seconds_elapsed++;
-    sleep(1);
+    sleep_for(1);
     pthread_mutex_unlock(&scheduler_mutex);
   }
   return NULL;
@@ -227,10 +232,6 @@ void get_processes_arriving_now(int time, struct ProcessList **incoming, struct 
   }
 }
 
-void sleep_for(double sec) {
-  usleep(sec*1000);
-}
-
 // First come first served scheduling algorithm
 void fcfs(struct ProcessList* incoming) {
   struct ProcessList* ready = NULL;
@@ -280,7 +281,7 @@ void fcfs(struct ProcessList* incoming) {
     }
     pthread_cond_signal(&scheduler_worked);
     pthread_mutex_unlock(&scheduler_mutex);
-    sleep_for(1.5);
+    sleep_for(1);
   }
 }
 
@@ -373,14 +374,12 @@ void srtn(struct ProcessList* incoming) {
         list_insert_by_time_left(&ready, running);
         print_events_to_stderr(PROCESS_INTERRUPTED, simulation->seconds_elapsed, running, arrived);
         release_process(arrived);
-        // printf("processo %s liberado\n", arrived->name);
         running = arrived;
         simulation->context_switches++;
       } else {
         // current process still faster than the new one
         list_insert_by_time_left(&ready, arrived);
         release_process(running);
-        // printf("processo %s liberado\n", running->name);
       }
     } else {
       if (arrived != NULL) {
@@ -388,13 +387,11 @@ void srtn(struct ProcessList* incoming) {
         if (next_ready != NULL && next_ready->dt < arrived->dt) {
           list_insert_by_time_left(&ready, arrived);
           release_process(next_ready);
-          // printf("processo %s liberado\n", next_ready->name);
           running = next_ready;
           simulation->context_switches++;
         } else {
           list_insert_by_time_left(&ready, next_ready);
           release_process(arrived);
-          // printf("processo %s liberado\n", arrived->name);
           running = arrived;
           simulation->context_switches++;
         }
@@ -410,7 +407,7 @@ void srtn(struct ProcessList* incoming) {
     }
     pthread_cond_signal(&scheduler_worked);
     pthread_mutex_unlock(&scheduler_mutex);
-    sleep_for(1.5);
+    sleep_for(0.5);
   }
 }
 
