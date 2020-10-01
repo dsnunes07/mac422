@@ -47,6 +47,7 @@ struct Simulation {
 
 pthread_mutex_t clock_mutex;
 pthread_mutex_t scheduler_mutex;
+pthread_cond_t scheduler_worked;
 
 
 // global simulator clock
@@ -155,13 +156,10 @@ void print_events_to_stderr(int event, int time, struct Process* p1, struct Proc
 
 void *time_pass(void *args) {
   while (1) {
-    printf("clock sleeping... %d\n", simulation->seconds_elapsed);
-    sleep(1);
-    // stop scheduler before advancing time
     pthread_mutex_lock(&scheduler_mutex);
-    printf("Clock woke up on critical section %d\n", simulation->seconds_elapsed);
+    pthread_cond_wait(&scheduler_worked, &scheduler_mutex);
+    sleep(1);
     simulation->seconds_elapsed++;
-    // release scheduler after update current time and sleep for one second
     pthread_mutex_unlock(&scheduler_mutex);
   }
   return NULL;
@@ -303,12 +301,8 @@ void srtn(struct ProcessList* incoming) {
   // while exists processes waiting to run
   while (incoming != NULL || ready != NULL || running != NULL) {
     pthread_mutex_lock(&scheduler_mutex);
-    printf("Scheduler woke up on critical section %d\n", get_current_time());
     local_time = get_current_time();
-    printf("local time = %d\n", local_time);
-    // printf("time: %d\n", local_time);
     if (running != NULL) {
-      printf("Updates running thread");
       running->exec_time++;
       running->tf = local_time;
       print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
@@ -378,10 +372,9 @@ void srtn(struct ProcessList* incoming) {
         }
       }
     }
+    pthread_cond_signal(&scheduler_worked);
     pthread_mutex_unlock(&scheduler_mutex);
-    printf("Scheduler sleeping...\n");
-    // pthread_mutex_unlock(&scheduler_mutex);
-    usleep(0.7*1000000);
+    sleep(1);
   }
 }
 
@@ -401,8 +394,8 @@ void simulate(struct ProcessList* trace) {
   simulation = malloc(sizeof(struct Simulation*));
   simulation->seconds_elapsed = 0;
   simulation->context_switches = 0;
-  // pthread_mutex_init(&stop_clock, NULL);
   pthread_mutex_init(&scheduler_mutex, NULL);
+  pthread_cond_init(&scheduler_worked, NULL);
   if (scheduler == 1) {
     fcfs(trace);
   } else if (scheduler == 2) {
@@ -429,7 +422,7 @@ struct Process* current_process(char* line) {
   process->arrival_time = atoi(process_data[1]);
   process->dt = atoi(process_data[2]);
   process->deadline = atoi(process_data[3]);
-  process->exec_time = 0;
+  process->exec_time = -1;
   pthread_t process_thread;
   pthread_mutex_t interrupt;
   pthread_mutex_init(&interrupt, NULL);
