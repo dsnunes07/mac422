@@ -1,3 +1,4 @@
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -184,7 +185,8 @@ void interactive_loop() {
 }
 
 int main(int argc, char** argv) {
-  current_user = getlogin();
+  struct passwd *user_data = getpwuid(getuid());
+  current_user = user_data->pw_name;
   current_dir = getcwd(NULL, 0);
   build_prompt();
   using_history();
