@@ -102,18 +102,18 @@ int time_left(struct Process* p) {
 void list_insert_by_time_left(struct ProcessList **head, struct Process* process) {
   if (process == NULL)
     return;
+
   struct ProcessList* current;
   struct ProcessList* new_process = malloc(sizeof(struct ProcessList*));
   new_process->process = process;
   new_process->next = NULL;
   // if arriving process is shorter than the shortest process
   if (*head == NULL || time_left((*head)->process) >= time_left(process)) {
-    printf("Placed process %s into queue head\n", process->name);
     new_process->next = *head;
     *head = new_process;
   } else {
     current = *head;
-    while (current->next != NULL && time_left(current->process) < time_left((*head)->process)) {
+    while (current->next != NULL && (time_left(new_process->process) >= time_left(current->next->process))) {
       current = current->next;
     }
     new_process->next = current->next;
@@ -298,14 +298,11 @@ struct Process* get_shortest_process_at_time(int clock_time, struct ProcessList 
     struct Process* p = (*incoming)->process;
     print_events_to_stderr(PROCESS_ARRIVED, clock_time, p, NULL);
     // gets only the first shortest process
-    printf("receiving processes at %d\n", clock_time);
     if (p->dt < min_dt) {
-      printf("new shortest process arrived %s\n", p->name);
       // stores the previous shortest process if a faster one has been found
       if (shortest_process != NULL) {
         list_insert_by_time_left(ready, shortest_process);
       }
-        
       min_dt = p->dt;
       shortest_process = p;
     } else {
@@ -313,13 +310,6 @@ struct Process* get_shortest_process_at_time(int clock_time, struct ProcessList 
     }
     *incoming = (*incoming)->next;
   }
-
-  if (clock_time == 9) {
-    print_linked_list(*ready);
-    exit(0);
-    // printf("%d\n", (*ready)->process == NULL);
-  }
-
   return shortest_process;
 }
 
@@ -363,7 +353,6 @@ void srtn(struct ProcessList* incoming) {
     if (running != NULL && process_finished(running)) {
       // let thread exit if necessary
       release_process(running);
-      // // printf("processo %s liberado para terminar\n", running->name);
       wait_finish(running);
       running->exec_time = running->exec_time + 1;
       running->tf = running->tf + 1;
@@ -384,7 +373,7 @@ void srtn(struct ProcessList* incoming) {
         release_process(running);
         // if new process is shortest than currently running process
       } else if (arrived->dt < time_left(running) + 1) {
-        running->exec_time--;
+        running->exec_time = running->exec_time - 1;
         list_insert_by_time_left(&ready, running);
         print_events_to_stderr(PROCESS_INTERRUPTED, simulation->seconds_elapsed, running, arrived);
         release_process(arrived);
@@ -413,7 +402,6 @@ void srtn(struct ProcessList* incoming) {
         struct Process* next_ready = list_pop(&ready);
         if (next_ready != NULL) {
           release_process(next_ready);
-          // printf("processo %s liberado\n", next_ready->name);
           running = next_ready;
           simulation->context_switches++;
         }
