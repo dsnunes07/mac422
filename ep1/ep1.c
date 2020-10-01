@@ -158,8 +158,8 @@ void *time_pass(void *args) {
   while (1) {
     pthread_mutex_lock(&scheduler_mutex);
     pthread_cond_wait(&scheduler_worked, &scheduler_mutex);
-    sleep(1);
     simulation->seconds_elapsed++;
+    sleep(1);
     pthread_mutex_unlock(&scheduler_mutex);
   }
   return NULL;
@@ -185,41 +185,6 @@ void *preemptive_worker(void *args) {
   }
   process->tr = process->tf - process->arrival_time;
   return NULL;
-}
-
-void *worker(void *args) {
-  struct Process* process = (struct Process*) args;
-  int dt = process->dt;
-  int exec_time = 0;
-  while (dt - exec_time != 0) {
-    sleep(1);
-    simulation->seconds_elapsed++;
-    exec_time++;
-  }
-  // process finish executing
-  process->exec_time = exec_time;
-  process->tf = simulation->seconds_elapsed;
-  process->tr = process->tf - process->arrival_time;
-}
-
-// First come first served scheduling algorithm
-void fcfs(struct ProcessList* incoming) {
-  while (incoming != NULL) {
-    struct Process* process = incoming->process;
-    if (process->arrival_time <= simulation->seconds_elapsed) {
-      // execute current process until it finishes
-      simulation->context_switches++;
-      pthread_create(&(process->thread), NULL, worker, process);
-      // wait current process to finish
-      pthread_join(process->thread, NULL);
-      // then move forward on process trace
-      incoming = incoming->next;
-    } else {
-      // keep waiting for a new process
-      simulation->seconds_elapsed++;
-      sleep(1);
-    }
-  }
 }
 
 int process_finished(struct Process* p) {
@@ -252,6 +217,71 @@ void wait_finish(struct Process* p) {
     return;
   
   pthread_join(p->thread, NULL);
+}
+
+void get_processes_arriving_now(int time, struct ProcessList **incoming, struct ProcessList **ready) {
+  while (*incoming != NULL && (*incoming)->process->arrival_time == time) {
+    list_append(ready, (*incoming)->process);
+    print_events_to_stderr(PROCESS_ARRIVED, time, (*incoming)->process, NULL);
+    *incoming = (*incoming)->next;
+  }
+}
+
+void sleep_for(int sec) {
+  usleep(sec*1000);
+}
+
+// First come first served scheduling algorithm
+void fcfs(struct ProcessList* incoming) {
+  struct ProcessList* ready = NULL;
+  // creates threads for all incoming processes
+  start_threads(incoming);
+  // starts the clock
+  pthread_t clock_thread;
+  pthread_create(&clock_thread, NULL, time_pass, NULL);
+  // process currently running
+  struct Process* running = NULL;
+  // keep local_time registered on scheduler
+  int local_time = 0;
+  // while there are still processes left to run
+  while (incoming != NULL || ready != NULL || running != NULL) {
+    pthread_mutex_lock(&scheduler_mutex);
+    local_time = get_current_time();
+
+    // updates currently running process
+    if (running != NULL) {
+      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+      running->exec_time++;
+      running->tf = local_time;
+    }
+
+    // if a process running has finished, stop it
+    if (running != NULL && process_finished(running)) {
+      release_process(running);
+      wait_finish(running);
+      running->exec_time = running->exec_time + 1;
+      running->tf = running->tf + 1;
+      running->tr = running->tf - running->arrival_time;
+      print_events_to_stderr(PROCESS_FINISHED, local_time + 1, running, NULL);
+      running = NULL;
+    }
+    // get all incoming processes for current time
+    get_processes_arriving_now(local_time, &incoming, &ready);
+    if (running == NULL) {
+      // get the next process if theres one
+      struct Process* next_ready = list_pop(&ready);
+      // and a new process has arrived
+      if (next_ready != NULL) {
+        // starts arrived process
+        release_process(next_ready);
+        running = next_ready;
+        simulation->context_switches++;
+      }
+    }
+    pthread_cond_signal(&scheduler_worked);
+    pthread_mutex_unlock(&scheduler_mutex);
+    sleep_for(1.5);
+  }
 }
 
 /* Gets all processes arriving in "clock time" and returns the one with the shortest dt,
@@ -287,6 +317,10 @@ void srtn(struct ProcessList* incoming) {
   int previous_time = 0;
   int local_time = 0;
 
+  // sleep in nanoseconds
+  struct timespec time_nano;
+  time_nano.tv_nsec = 1.5*1e9;
+
   /* start threads of every incoming processes,
   all of them are initially stopped */
   start_threads(incoming);
@@ -303,9 +337,9 @@ void srtn(struct ProcessList* incoming) {
     pthread_mutex_lock(&scheduler_mutex);
     local_time = get_current_time();
     if (running != NULL) {
+      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
       running->exec_time++;
       running->tf = local_time;
-      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
     }
     // receive a process which may have arrived
     arrived = get_shortest_process_at_time(local_time, &incoming, &ready);
@@ -316,8 +350,10 @@ void srtn(struct ProcessList* incoming) {
       release_process(running);
       // // printf("processo %s liberado para terminar\n", running->name);
       wait_finish(running);
+      running->exec_time++;
+      running->tf++;
       // print to stderr if user requested
-      print_events_to_stderr(PROCESS_FINISHED, simulation->seconds_elapsed, running, NULL);
+      print_events_to_stderr(PROCESS_FINISHED, local_time+1, running, NULL);
       // process is no longer running
       running = NULL;
     }
@@ -374,7 +410,7 @@ void srtn(struct ProcessList* incoming) {
     }
     pthread_cond_signal(&scheduler_worked);
     pthread_mutex_unlock(&scheduler_mutex);
-    sleep(1);
+    sleep_for(1.5);
   }
 }
 
@@ -422,7 +458,7 @@ struct Process* current_process(char* line) {
   process->arrival_time = atoi(process_data[1]);
   process->dt = atoi(process_data[2]);
   process->deadline = atoi(process_data[3]);
-  process->exec_time = -1;
+  process->exec_time = 0;
   pthread_t process_thread;
   pthread_mutex_t interrupt;
   pthread_mutex_init(&interrupt, NULL);
