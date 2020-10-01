@@ -227,7 +227,7 @@ void get_processes_arriving_now(int time, struct ProcessList **incoming, struct 
   }
 }
 
-void sleep_for(int sec) {
+void sleep_for(double sec) {
   usleep(sec*1000);
 }
 
@@ -350,10 +350,11 @@ void srtn(struct ProcessList* incoming) {
       release_process(running);
       // // printf("processo %s liberado para terminar\n", running->name);
       wait_finish(running);
-      running->exec_time++;
-      running->tf++;
+      running->exec_time = running->exec_time + 1;
+      running->tf = running->tf + 1;
+      running->tr = running->tf - running->arrival_time;
       // print to stderr if user requested
-      print_events_to_stderr(PROCESS_FINISHED, local_time+1, running, NULL);
+      print_events_to_stderr(PROCESS_FINISHED, local_time + 1, running, NULL);
       // process is no longer running
       running = NULL;
     }
@@ -361,15 +362,14 @@ void srtn(struct ProcessList* incoming) {
     if (running != NULL) {
       // interrupt current process
       interrupt_process(running);
-      // printf("processo %s interrompido\n", running->name);
-      
+
       // if no process has arrived
       if (arrived == NULL) {
         // process can continue running
         release_process(running);
-        // printf("processo %s liberado\n", running->name);
         // if new process is shortest than currently running process
-      } else if (arrived->dt < time_left(running)) {
+      } else if (arrived->dt < time_left(running) + 1) {
+        running->exec_time--;
         list_insert_by_time_left(&ready, running);
         print_events_to_stderr(PROCESS_INTERRUPTED, simulation->seconds_elapsed, running, arrived);
         release_process(arrived);
