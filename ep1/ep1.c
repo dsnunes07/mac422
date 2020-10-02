@@ -171,7 +171,7 @@ void *time_pass(void *args) {
     pthread_mutex_lock(&scheduler_mutex);
     pthread_cond_wait(&scheduler_worked, &scheduler_mutex);
     simulation->seconds_elapsed++;
-    sleep_for(1);
+    sleep_for(0.2);
     pthread_mutex_unlock(&scheduler_mutex);
   }
   return NULL;
@@ -261,13 +261,6 @@ void fcfs(struct ProcessList* incoming) {
     }
     local_time = get_current_time();
 
-    /* // updates currently running process
-    if (running != NULL) {
-      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
-      running->exec_time++;
-      running->tf = local_time;
-    } */
-
     // if a process running has finished, stop it
     if (running != NULL && process_finished(running)) {
       release_process(running);
@@ -295,7 +288,7 @@ void fcfs(struct ProcessList* incoming) {
     }
     pthread_cond_signal(&scheduler_worked);
     pthread_mutex_unlock(&scheduler_mutex);
-    sleep_for(1.0);
+    sleep_for(0.2);
   }
 }
 
@@ -331,10 +324,6 @@ void srtn(struct ProcessList* incoming) {
   // scheduler clock variable
   int previous_time = 0;
   int local_time = 0;
-
-  // sleep in nanoseconds
-  struct timespec time_nano;
-  time_nano.tv_nsec = 1.5*1e9;
 
   /* start threads of every incoming processes,
   all of them are initially stopped */
