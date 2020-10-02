@@ -1,9 +1,11 @@
+#define _GNU_SOURCE
 #include <limits.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sched.h>
 
 #define MAX_LINE_LENGTH 128
 
@@ -29,6 +31,7 @@ struct Process {
   int tf;
   int tr;
   int exec_time;
+  int cpu_running;
   pthread_t thread;
   pthread_mutex_t interrupt;
 };
@@ -145,7 +148,7 @@ void print_events_to_stderr(int event, int time, struct Process* p1, struct Proc
     fprintf(stderr, "[%ds] Chegou no sistema: '%s %d %d %d'\n", time, p1->name, p1->arrival_time, p1->dt, p1->deadline);
     break;
   case PROCESS_RELEASED:
-    fprintf(stderr, "[%ds] %s está executando, tempo restante: %ds\n", time, p1->name, time_left(p1));
+    fprintf(stderr, "[%ds] %s está executando na Cpu%d, tempo restante: %ds\n", time, p1->name, p1->cpu_running, time_left(p1));
     break;
   case PROCESS_INTERRUPTED:
     fprintf(stderr, "[%ds] Processo %s (tempo restante: %ds) foi substituído por %s (tempo restante: %ds)\n", time, p1->name, time_left(p1), p2->name, time_left(p2));
@@ -190,6 +193,7 @@ void *preemptive_worker(void *args) {
   while(time_left(process) > 0) {
     // but it can be interrupted
     pthread_mutex_lock(&(process->interrupt));
+    process->cpu_running = sched_getcpu();
     pthread_mutex_unlock(&(process->interrupt));
   }
   process->tr = process->tf - process->arrival_time;
@@ -465,6 +469,7 @@ struct Process* current_process(char* line) {
   pthread_mutex_lock(&interrupt);
   process->thread = process_thread;
   process->interrupt = interrupt;
+  process->cpu_running = -1;
   return process;
 }
 
