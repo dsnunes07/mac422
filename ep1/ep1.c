@@ -171,7 +171,7 @@ void *time_pass(void *args) {
     pthread_mutex_lock(&scheduler_mutex);
     pthread_cond_wait(&scheduler_worked, &scheduler_mutex);
     simulation->seconds_elapsed++;
-    sleep_for(0.2);
+    sleep_for(1);
     pthread_mutex_unlock(&scheduler_mutex);
   }
   return NULL;
@@ -265,6 +265,7 @@ void fcfs(struct ProcessList* incoming) {
     if (running != NULL && process_finished(running)) {
       release_process(running);
       wait_finish(running);
+      running->tf = local_time;
       running->tr = running->tf - running->arrival_time;
       print_events_to_stderr(PROCESS_FINISHED, local_time, running, NULL);
       running = NULL;
@@ -288,7 +289,7 @@ void fcfs(struct ProcessList* incoming) {
     }
     pthread_cond_signal(&scheduler_worked);
     pthread_mutex_unlock(&scheduler_mutex);
-    sleep_for(0.2);
+    sleep_for(0.5);
   }
 }
 
