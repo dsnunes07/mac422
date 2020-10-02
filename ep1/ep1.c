@@ -171,7 +171,6 @@ void *time_pass(void *args) {
     pthread_mutex_lock(&scheduler_mutex);
     pthread_cond_wait(&scheduler_worked, &scheduler_mutex);
     simulation->seconds_elapsed++;
-    printf("Clock updated %d\n", simulation->seconds_elapsed);
     sleep_for(1);
     pthread_mutex_unlock(&scheduler_mutex);
   }
@@ -256,24 +255,30 @@ void fcfs(struct ProcessList* incoming) {
   // while there are still processes left to run
   while (incoming != NULL || ready != NULL || running != NULL) {
     pthread_mutex_lock(&scheduler_mutex);
+    // scheduler will update the time if clock is late
+    if (local_time > 0 && get_current_time() == local_time) {
+      simulation->seconds_elapsed++;
+    }
     local_time = get_current_time();
 
-    // updates currently running process
+    /* // updates currently running process
     if (running != NULL) {
       print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
       running->exec_time++;
       running->tf = local_time;
-    }
+    } */
 
     // if a process running has finished, stop it
     if (running != NULL && process_finished(running)) {
       release_process(running);
       wait_finish(running);
-      running->exec_time = running->exec_time + 1;
-      running->tf = running->tf + 1;
       running->tr = running->tf - running->arrival_time;
-      print_events_to_stderr(PROCESS_FINISHED, local_time + 1, running, NULL);
+      print_events_to_stderr(PROCESS_FINISHED, local_time, running, NULL);
       running = NULL;
+    } else if (running != NULL) {
+      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+      running->exec_time++;
+      running->tf = local_time;
     }
     // get all incoming processes for current time
     get_processes_arriving_now(local_time, &incoming, &ready);
@@ -290,7 +295,7 @@ void fcfs(struct ProcessList* incoming) {
     }
     pthread_cond_signal(&scheduler_worked);
     pthread_mutex_unlock(&scheduler_mutex);
-    sleep_for(1);
+    sleep_for(1.0);
   }
 }
 
@@ -487,13 +492,13 @@ void round_robin(struct ProcessList* incoming) {
 }
 
 void print_output_file(struct ProcessList* trace) {
-  FILE *fp = fopen(output_filename, "w");
+  FILE *fp = fopen(output_filename, "a");
   while (trace != NULL) {
     struct Process *p = trace->process;
     fprintf(fp, "%s %d %d\n", p->name, p->tf, p->tr);
     trace = trace->next;
   }
-  fprintf(fp, "%d", simulation->context_switches);
+  fprintf(fp, "%d\n", simulation->context_switches);
   fclose(fp);
 }
 
