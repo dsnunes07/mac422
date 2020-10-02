@@ -1,6 +1,6 @@
 #! /bin/bash
 
-REPEATS=5
+REPEATS=30
 N_PROCS=(10 100 1000)
 
 # for each scheduler...
@@ -11,7 +11,7 @@ for ((SCHEDULER=1; SCHEDULER <= 3; SCHEDULER++ )); do
   for N in ${N_PROCS[@]}; do
     echo "Quantidade de processos: $N"
     for ((R=1; R <= REPEATS; R++)); do
-      ./ep1 ${SCHEDULER} analysis/data/analysis_trace${N} analysis/results/s_${SCHEDULER}_p_${N}_out -d 2> analysis/logs/stderr_s_${SCHEDULER}_p_${N}_n_${R}
+      ./ep1 ${SCHEDULER} analysis/data/analysis_trace${N} analysis/results/daniel/s_${SCHEDULER}_p_${N}_out -d 2> analysis/logs/daniel/stderr_s_${SCHEDULER}_p_${N}_n_${R}
     done
   done
 done
