@@ -1,0 +1,49 @@
+[1s] Chegou no sistema: 'processo0 1 2 11'
+[2s] processo0 está executando na Cpu0, tempo restante: 2s
+[2s] Chegou no sistema: 'processo1 2 1 8'
+[2s] Processo processo0 (tempo restante: 2s) foi substituído por processo1 (tempo restante: 1s)
+[3s] processo1 está executando na Cpu1, tempo restante: 1s
+[3s] Chegou no sistema: 'processo2 3 3 7'
+[4s] processo1 terminou de executar no instante 4 s (saída: processo1 4 2)
+[4s] processo0 está executando na Cpu3, tempo restante: 2s
+[4s] Chegou no sistema: 'processo3 4 4 11'
+[5s] processo0 está executando na Cpu3, tempo restante: 1s
+[5s] Chegou no sistema: 'processo4 5 1 9'
+[6s] processo0 terminou de executar no instante 6 s (saída: processo0 6 5)
+[6s] processo4 está executando na Cpu3, tempo restante: 1s
+[6s] Chegou no sistema: 'processo5 6 4 10'
+[7s] processo4 terminou de executar no instante 7 s (saída: processo4 7 2)
+[7s] processo2 está executando na Cpu3, tempo restante: 3s
+[7s] Chegou no sistema: 'processo6 7 3 11'
+[8s] processo2 está executando na Cpu2, tempo restante: 2s
+[9s] processo2 está executando na Cpu0, tempo restante: 1s
+[10s] processo2 terminou de executar no instante 10 s (saída: processo2 10 7)
+[10s] processo6 está executando na Cpu0, tempo restante: 3s
+[10s] Chegou no sistema: 'processo7 10 4 14'
+[11s] processo6 está executando na Cpu0, tempo restante: 2s
+[12s] processo6 está executando na Cpu2, tempo restante: 1s
+[12s] Chegou no sistema: 'processo8 12 3 16'
+[13s] processo6 terminou de executar no instante 13 s (saída: processo6 13 6)
+[13s] processo8 está executando na Cpu1, tempo restante: 3s
+[14s] processo8 está executando na Cpu3, tempo restante: 2s
+[14s] Chegou no sistema: 'processo9 14 2 16'
+[15s] processo8 está executando na Cpu1, tempo restante: 1s
+[16s] processo8 terminou de executar no instante 16 s (saída: processo8 16 4)
+[16s] processo9 está executando na Cpu3, tempo restante: 2s
+[17s] processo9 está executando na Cpu3, tempo restante: 1s
+[18s] processo9 terminou de executar no instante 18 s (saída: processo9 18 4)
+[18s] processo7 está executando na Cpu0, tempo restante: 4s
+[19s] processo7 está executando na Cpu0, tempo restante: 3s
+[20s] processo7 está executando na Cpu2, tempo restante: 2s
+[21s] processo7 está executando na Cpu0, tempo restante: 1s
+[22s] processo7 terminou de executar no instante 22 s (saída: processo7 22 12)
+[22s] processo5 está executando na Cpu3, tempo restante: 4s
+[23s] processo5 está executando na Cpu3, tempo restante: 3s
+[24s] processo5 está executando na Cpu1, tempo restante: 2s
+[25s] processo5 está executando na Cpu1, tempo restante: 1s
+[26s] processo5 terminou de executar no instante 26 s (saída: processo5 26 20)
+[26s] processo3 está executando na Cpu3, tempo restante: 4s
+[27s] processo3 está executando na Cpu3, tempo restante: 3s
+[28s] processo3 está executando na Cpu3, tempo restante: 2s
+[29s] processo3 está executando na Cpu1, tempo restante: 1s
+[30s] processo3 terminou de executar no instante 30 s (saída: processo3 30 26)

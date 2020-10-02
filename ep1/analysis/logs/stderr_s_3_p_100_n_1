@@ -1,0 +1,357 @@
+[0s] Chegou no sistema: 'processo0 0 1 100'
+[0s] processo0 está executando na Cpu-1, tempo restante: 1s
+[1s] Chegou no sistema: 'processo1 1 1 5'
+[1s] Chegou no sistema: 'processo2 1 2 16'
+[1s] processo0 terminou de executar no instante 1 s (saída: processo0 1 1)
+[1s] processo1 está executando na Cpu-1, tempo restante: 1s
+[2s] Chegou no sistema: 'processo3 2 2 33'
+[2s] Chegou no sistema: 'processo4 2 4 17'
+[2s] processo1 terminou de executar no instante 2 s (saída: processo1 2 1)
+[2s] processo2 está executando na Cpu-1, tempo restante: 2s
+[3s] processo3 está executando na Cpu-1, tempo restante: 2s
+[4s] Chegou no sistema: 'processo5 4 4 48'
+[4s] Chegou no sistema: 'processo6 4 2 17'
+[4s] Chegou no sistema: 'processo7 4 1 68'
+[4s] processo4 está executando na Cpu-1, tempo restante: 4s
+[5s] processo2 está executando na Cpu0, tempo restante: 1s
+[6s] Chegou no sistema: 'processo8 6 1 37'
+[6s] Chegou no sistema: 'processo9 6 1 90'
+[6s] Chegou no sistema: 'processo10 6 3 74'
+[6s] processo2 terminou de executar no instante 6 s (saída: processo2 6 5)
+[6s] processo5 está executando na Cpu-1, tempo restante: 4s
+[7s] Chegou no sistema: 'processo11 7 2 18'
+[7s] Chegou no sistema: 'processo12 7 1 95'
+[7s] processo6 está executando na Cpu-1, tempo restante: 2s
+[8s] processo7 está executando na Cpu-1, tempo restante: 1s
+[9s] processo7 terminou de executar no instante 9 s (saída: processo7 9 5)
+[9s] processo3 está executando na Cpu2, tempo restante: 1s
+[10s] Chegou no sistema: 'processo13 10 2 61'
+[10s] processo3 terminou de executar no instante 10 s (saída: processo3 10 8)
+[10s] processo4 está executando na Cpu2, tempo restante: 3s
+[11s] Chegou no sistema: 'processo14 11 2 21'
+[11s] Chegou no sistema: 'processo15 11 1 67'
+[11s] processo8 está executando na Cpu-1, tempo restante: 1s
+[12s] Chegou no sistema: 'processo16 12 3 86'
+[12s] processo8 terminou de executar no instante 12 s (saída: processo8 12 6)
+[12s] processo9 está executando na Cpu-1, tempo restante: 1s
+[13s] Chegou no sistema: 'processo17 13 2 80'
+[13s] processo9 terminou de executar no instante 13 s (saída: processo9 13 7)
+[13s] processo10 está executando na Cpu-1, tempo restante: 3s
+[14s] processo11 está executando na Cpu-1, tempo restante: 2s
+[15s] Chegou no sistema: 'processo18 15 2 22'
+[15s] Chegou no sistema: 'processo19 15 3 62'
+[15s] processo12 está executando na Cpu-1, tempo restante: 1s
+[16s] Chegou no sistema: 'processo20 16 4 31'
+[16s] Chegou no sistema: 'processo21 16 3 49'
+[16s] Chegou no sistema: 'processo22 16 3 90'
+[16s] Chegou no sistema: 'processo23 16 1 36'
+[16s] Chegou no sistema: 'processo24 16 2 44'
+[16s] processo12 terminou de executar no instante 16 s (saída: processo12 16 9)
+[16s] processo5 está executando na Cpu2, tempo restante: 3s
+[17s] processo6 está executando na Cpu0, tempo restante: 1s
+[18s] processo6 terminou de executar no instante 18 s (saída: processo6 18 14)
+[18s] processo13 está executando na Cpu-1, tempo restante: 2s
+[19s] Chegou no sistema: 'processo25 19 2 69'
+[19s] Chegou no sistema: 'processo26 19 4 47'
+[19s] processo14 está executando na Cpu-1, tempo restante: 2s
+[20s] Chegou no sistema: 'processo27 20 2 41'
+[20s] processo15 está executando na Cpu-1, tempo restante: 1s
+[21s] Chegou no sistema: 'processo28 21 4 57'
+[21s] Chegou no sistema: 'processo29 21 4 80'
+[21s] processo15 terminou de executar no instante 21 s (saída: processo15 21 10)
+[21s] processo4 está executando na Cpu2, tempo restante: 2s
+[22s] Chegou no sistema: 'processo30 22 4 62'
+[22s] Chegou no sistema: 'processo31 22 2 86'
+[22s] Chegou no sistema: 'processo32 22 2 80'
+[22s] processo16 está executando na Cpu-1, tempo restante: 3s
+[23s] Chegou no sistema: 'processo33 23 3 43'
+[23s] processo17 está executando na Cpu-1, tempo restante: 2s
+[24s] Chegou no sistema: 'processo34 24 4 37'
+[24s] Chegou no sistema: 'processo35 24 2 26'
+[24s] Chegou no sistema: 'processo36 24 3 55'
+[24s] Chegou no sistema: 'processo37 24 4 80'
+[24s] processo10 está executando na Cpu0, tempo restante: 2s
+[25s] Chegou no sistema: 'processo38 25 4 32'
+[25s] Chegou no sistema: 'processo39 25 4 71'
+[25s] Chegou no sistema: 'processo40 25 1 76'
+[25s] processo18 está executando na Cpu-1, tempo restante: 2s
+[26s] Chegou no sistema: 'processo41 26 4 77'
+[26s] Chegou no sistema: 'processo42 26 3 77'
+[26s] Chegou no sistema: 'processo43 26 4 43'
+[26s] Chegou no sistema: 'processo44 26 3 44'
+[26s] Chegou no sistema: 'processo45 26 2 56'
+[26s] processo19 está executando na Cpu-1, tempo restante: 3s
+[27s] Chegou no sistema: 'processo46 27 2 65'
+[27s] Chegou no sistema: 'processo47 27 1 54'
+[27s] Chegou no sistema: 'processo48 27 4 46'
+[27s] Chegou no sistema: 'processo49 27 3 50'
+[27s] processo11 está executando na Cpu3, tempo restante: 1s
+[28s] Chegou no sistema: 'processo50 28 1 66'
+[28s] Chegou no sistema: 'processo51 28 2 45'
+[28s] Chegou no sistema: 'processo52 28 1 76'
+[28s] processo11 terminou de executar no instante 28 s (saída: processo11 28 21)
+[28s] processo20 está executando na Cpu-1, tempo restante: 4s
+[29s] Chegou no sistema: 'processo53 29 1 30'
+[29s] Chegou no sistema: 'processo54 29 2 46'
+[29s] processo21 está executando na Cpu-1, tempo restante: 3s
+[30s] Chegou no sistema: 'processo55 30 4 40'
+[30s] processo22 está executando na Cpu-1, tempo restante: 3s
+[31s] processo23 está executando na Cpu-1, tempo restante: 1s
+[32s] processo23 terminou de executar no instante 32 s (saída: processo23 32 16)
+[32s] processo24 está executando na Cpu-1, tempo restante: 2s
+[33s] Chegou no sistema: 'processo56 33 3 61'
+[33s] Chegou no sistema: 'processo57 33 3 48'
+[33s] processo5 está executando na Cpu1, tempo restante: 2s
+[34s] processo25 está executando na Cpu-1, tempo restante: 2s
+[35s] Chegou no sistema: 'processo58 35 3 74'
+[35s] Chegou no sistema: 'processo59 35 3 48'
+[35s] Chegou no sistema: 'processo60 35 3 60'
+[35s] Chegou no sistema: 'processo61 35 3 58'
+[35s] Chegou no sistema: 'processo62 35 2 54'
+[35s] processo26 está executando na Cpu-1, tempo restante: 4s
+[36s] Chegou no sistema: 'processo63 36 3 71'
+[36s] Chegou no sistema: 'processo64 36 3 48'
+[36s] Chegou no sistema: 'processo65 36 2 68'
+[36s] Chegou no sistema: 'processo66 36 1 39'
+[36s] Chegou no sistema: 'processo67 36 3 50'
+[36s] processo13 está executando na Cpu1, tempo restante: 1s
+[37s] Chegou no sistema: 'processo68 37 4 53'
+[37s] processo13 terminou de executar no instante 37 s (saída: processo13 37 27)
+[37s] processo27 está executando na Cpu-1, tempo restante: 2s
+[38s] Chegou no sistema: 'processo69 38 3 57'
+[38s] Chegou no sistema: 'processo70 38 4 63'
+[38s] Chegou no sistema: 'processo71 38 3 52'
+[38s] processo14 está executando na Cpu1, tempo restante: 1s
+[39s] Chegou no sistema: 'processo72 39 1 63'
+[39s] Chegou no sistema: 'processo73 39 1 60'
+[39s] Chegou no sistema: 'processo74 39 3 65'
+[39s] processo14 terminou de executar no instante 39 s (saída: processo14 39 28)
+[39s] processo28 está executando na Cpu-1, tempo restante: 4s
+[40s] Chegou no sistema: 'processo75 40 3 56'
+[40s] Chegou no sistema: 'processo76 40 1 48'
+[40s] Chegou no sistema: 'processo77 40 1 44'
+[40s] processo29 está executando na Cpu-1, tempo restante: 4s
+[41s] Chegou no sistema: 'processo78 41 2 55'
+[41s] Chegou no sistema: 'processo79 41 2 58'
+[41s] processo30 está executando na Cpu-1, tempo restante: 4s
+[42s] Chegou no sistema: 'processo80 42 3 64'
+[42s] Chegou no sistema: 'processo81 42 1 52'
+[42s] processo31 está executando na Cpu-1, tempo restante: 2s
+[43s] Chegou no sistema: 'processo82 43 3 58'
+[43s] Chegou no sistema: 'processo83 43 4 52'
+[43s] Chegou no sistema: 'processo84 43 1 47'
+[43s] processo32 está executando na Cpu-1, tempo restante: 2s
+[44s] Chegou no sistema: 'processo85 44 4 50'
+[44s] Chegou no sistema: 'processo86 44 2 55'
+[44s] processo4 está executando na Cpu0, tempo restante: 1s
+[45s] Chegou no sistema: 'processo87 45 2 55'
+[45s] Chegou no sistema: 'processo88 45 2 58'
+[45s] Chegou no sistema: 'processo89 45 4 54'
+[45s] processo4 terminou de executar no instante 45 s (saída: processo4 45 43)
+[45s] processo33 está executando na Cpu-1, tempo restante: 3s
+[46s] Chegou no sistema: 'processo90 46 2 51'
+[46s] processo16 está executando na Cpu3, tempo restante: 2s
+[47s] Chegou no sistema: 'processo91 47 2 56'
+[47s] Chegou no sistema: 'processo92 47 4 51'
+[47s] Chegou no sistema: 'processo93 47 3 51'
+[47s] processo34 está executando na Cpu-1, tempo restante: 4s
+[48s] Chegou no sistema: 'processo94 48 2 52'
+[48s] Chegou no sistema: 'processo95 48 1 52'
+[48s] Chegou no sistema: 'processo96 48 2 53'
+[48s] Chegou no sistema: 'processo97 48 4 54'
+[48s] Chegou no sistema: 'processo98 48 2 50'
+[48s] processo35 está executando na Cpu-1, tempo restante: 2s
+[49s] Chegou no sistema: 'processo99 49 1 50'
+[49s] processo36 está executando na Cpu-1, tempo restante: 3s
+[50s] processo37 está executando na Cpu-1, tempo restante: 4s
+[51s] processo17 está executando na Cpu1, tempo restante: 1s
+[52s] processo17 terminou de executar no instante 52 s (saída: processo17 52 39)
+[52s] processo38 está executando na Cpu-1, tempo restante: 4s
+[53s] processo39 está executando na Cpu-1, tempo restante: 4s
+[54s] processo40 está executando na Cpu-1, tempo restante: 1s
+[55s] processo40 terminou de executar no instante 55 s (saída: processo40 55 30)
+[55s] processo10 está executando na Cpu0, tempo restante: 1s
+[56s] processo10 terminou de executar no instante 56 s (saída: processo10 56 50)
+[56s] processo41 está executando na Cpu-1, tempo restante: 4s
+[57s] processo42 está executando na Cpu-1, tempo restante: 3s
+[58s] processo43 está executando na Cpu-1, tempo restante: 4s
+[59s] processo44 está executando na Cpu-1, tempo restante: 3s
+[60s] processo45 está executando na Cpu-1, tempo restante: 2s
+[61s] processo18 está executando na Cpu1, tempo restante: 1s
+[62s] processo18 terminou de executar no instante 62 s (saída: processo18 62 47)
+[62s] processo46 está executando na Cpu-1, tempo restante: 2s
+[63s] processo47 está executando na Cpu-1, tempo restante: 1s
+[64s] processo47 terminou de executar no instante 64 s (saída: processo47 64 37)
+[64s] processo48 está executando na Cpu-1, tempo restante: 4s
+[65s] processo49 está executando na Cpu-1, tempo restante: 3s
+[66s] processo19 está executando na Cpu1, tempo restante: 2s
+[67s] processo50 está executando na Cpu-1, tempo restante: 1s
+[68s] processo50 terminou de executar no instante 68 s (saída: processo50 68 40)
+[68s] processo51 está executando na Cpu-1, tempo restante: 2s
+[69s] processo52 está executando na Cpu-1, tempo restante: 1s
+[70s] processo52 terminou de executar no instante 70 s (saída: processo52 70 42)
+[70s] processo53 está executando na Cpu-1, tempo restante: 1s
+[71s] processo53 terminou de executar no instante 71 s (saída: processo53 71 42)
+[71s] processo54 está executando na Cpu-1, tempo restante: 2s
+[72s] processo20 está executando na Cpu0, tempo restante: 3s
+[73s] processo55 está executando na Cpu-1, tempo restante: 4s
+[74s] processo21 está executando na Cpu0, tempo restante: 2s
+[75s] processo22 está executando na Cpu0, tempo restante: 2s
+[76s] processo56 está executando na Cpu-1, tempo restante: 3s
+[77s] processo57 está executando na Cpu-1, tempo restante: 3s
+[78s] processo24 está executando na Cpu0, tempo restante: 1s
+[79s] processo24 terminou de executar no instante 79 s (saída: processo24 79 63)
+[79s] processo5 está executando na Cpu1, tempo restante: 1s
+[80s] processo5 terminou de executar no instante 80 s (saída: processo5 80 76)
+[80s] processo58 está executando na Cpu-1, tempo restante: 3s
+[81s] processo59 está executando na Cpu-1, tempo restante: 3s
+[82s] processo60 está executando na Cpu-1, tempo restante: 3s
+[83s] processo61 está executando na Cpu-1, tempo restante: 3s
+[84s] processo62 está executando na Cpu-1, tempo restante: 2s
+[85s] processo25 está executando na Cpu2, tempo restante: 1s
+[86s] processo25 terminou de executar no instante 86 s (saída: processo25 86 67)
+[86s] processo63 está executando na Cpu-1, tempo restante: 3s
+[87s] processo64 está executando na Cpu-1, tempo restante: 3s
+[88s] processo65 está executando na Cpu-1, tempo restante: 2s
+[89s] processo66 está executando na Cpu-1, tempo restante: 1s
+[90s] processo66 terminou de executar no instante 90 s (saída: processo66 90 54)
+[90s] processo67 está executando na Cpu-1, tempo restante: 3s
+[91s] processo26 está executando na Cpu0, tempo restante: 3s
+[92s] processo68 está executando na Cpu-1, tempo restante: 4s
+[93s] processo69 está executando na Cpu-1, tempo restante: 3s
+[94s] processo70 está executando na Cpu-1, tempo restante: 4s
+[95s] processo71 está executando na Cpu-1, tempo restante: 3s
+[96s] processo27 está executando na Cpu3, tempo restante: 1s
+[97s] processo27 terminou de executar no instante 97 s (saída: processo27 97 77)
+[97s] processo72 está executando na Cpu-1, tempo restante: 1s
+[98s] processo72 terminou de executar no instante 98 s (saída: processo72 98 59)
+[98s] processo73 está executando na Cpu-1, tempo restante: 1s
+[99s] processo73 terminou de executar no instante 99 s (saída: processo73 99 60)
+[99s] processo74 está executando na Cpu-1, tempo restante: 3s
+[100s] processo75 está executando na Cpu-1, tempo restante: 3s
+[101s] processo76 está executando na Cpu-1, tempo restante: 1s
+[102s] processo76 terminou de executar no instante 102 s (saída: processo76 102 62)
+[102s] processo77 está executando na Cpu-1, tempo restante: 1s
+[103s] processo77 terminou de executar no instante 103 s (saída: processo77 103 63)
+[103s] processo28 está executando na Cpu3, tempo restante: 3s
+[104s] processo78 está executando na Cpu-1, tempo restante: 2s
+[105s] processo79 está executando na Cpu-1, tempo restante: 2s
+[106s] processo29 está executando na Cpu2, tempo restante: 3s
+[107s] processo80 está executando na Cpu-1, tempo restante: 3s
+[108s] processo81 está executando na Cpu-1, tempo restante: 1s
+[109s] processo81 terminou de executar no instante 109 s (saída: processo81 109 67)
+[109s] processo30 está executando na Cpu2, tempo restante: 3s
+[110s] processo82 está executando na Cpu-1, tempo restante: 3s
+[111s] processo83 está executando na Cpu-1, tempo restante: 4s
+[112s] processo84 está executando na Cpu-1, tempo restante: 1s
+[113s] processo84 terminou de executar no instante 113 s (saída: processo84 113 70)
+[113s] processo31 está executando na Cpu3, tempo restante: 1s
+[114s] processo31 terminou de executar no instante 114 s (saída: processo31 114 92)
+[114s] processo85 está executando na Cpu-1, tempo restante: 4s
+[115s] processo86 está executando na Cpu-1, tempo restante: 2s
+[116s] processo32 está executando na Cpu0, tempo restante: 1s
+[117s] processo32 terminou de executar no instante 117 s (saída: processo32 117 95)
+[117s] processo87 está executando na Cpu-1, tempo restante: 2s
+[118s] processo88 está executando na Cpu-1, tempo restante: 2s
+[119s] processo89 está executando na Cpu-1, tempo restante: 4s
+[120s] processo90 está executando na Cpu-1, tempo restante: 2s
+[121s] processo33 está executando na Cpu2, tempo restante: 2s
+[122s] processo91 está executando na Cpu-1, tempo restante: 2s
+[123s] processo92 está executando na Cpu-1, tempo restante: 4s
+[124s] processo93 está executando na Cpu-1, tempo restante: 3s
+[125s] processo16 está executando na Cpu1, tempo restante: 1s
+[126s] processo16 terminou de executar no instante 126 s (saída: processo16 126 114)
+[126s] processo94 está executando na Cpu-1, tempo restante: 2s
+[127s] processo95 está executando na Cpu-1, tempo restante: 1s
+[128s] processo95 terminou de executar no instante 128 s (saída: processo95 128 80)
+[128s] processo96 está executando na Cpu-1, tempo restante: 2s
+[129s] processo97 está executando na Cpu-1, tempo restante: 4s
+[130s] processo98 está executando na Cpu-1, tempo restante: 2s
+[131s] processo34 está executando na Cpu2, tempo restante: 3s
+[132s] processo99 está executando na Cpu-1, tempo restante: 1s
+[133s] processo99 terminou de executar no instante 133 s (saída: processo99 133 84)
+[133s] processo35 está executando na Cpu2, tempo restante: 1s
+[134s] processo35 terminou de executar no instante 134 s (saída: processo35 134 110)
+[134s] processo36 está executando na Cpu0, tempo restante: 2s
+[135s] processo37 está executando na Cpu1, tempo restante: 3s
+[136s] processo38 está executando na Cpu2, tempo restante: 3s
+[137s] processo39 está executando na Cpu2, tempo restante: 3s
+[138s] processo41 está executando na Cpu1, tempo restante: 3s
+[139s] processo42 está executando na Cpu3, tempo restante: 2s
+[140s] processo43 está executando na Cpu3, tempo restante: 3s
+[141s] processo44 está executando na Cpu3, tempo restante: 2s
+[142s] processo45 está executando na Cpu3, tempo restante: 1s
+[143s] processo45 terminou de executar no instante 143 s (saída: processo45 143 117)
+[143s] processo46 está executando na Cpu1, tempo restante: 1s
+[144s] processo46 terminou de executar no instante 144 s (saída: processo46 144 117)
+[144s] processo48 está executando na Cpu1, tempo restante: 3s
+[145s] processo49 está executando na Cpu1, tempo restante: 2s
+[146s] processo19 está executando na Cpu1, tempo restante: 1s
+[147s] processo19 terminou de executar no instante 147 s (saída: processo19 147 132)
+[147s] processo51 está executando na Cpu3, tempo restante: 1s
+[148s] processo51 terminou de executar no instante 148 s (saída: processo51 148 120)
+[148s] processo54 está executando na Cpu1, tempo restante: 1s
+[149s] processo54 terminou de executar no instante 149 s (saída: processo54 149 120)
+[149s] processo20 está executando na Cpu0, tempo restante: 2s
+[150s] processo55 está executando na Cpu3, tempo restante: 3s
+[151s] processo21 está executando na Cpu2, tempo restante: 1s
+[152s] processo21 terminou de executar no instante 152 s (saída: processo21 152 136)
+[152s] processo22 está executando na Cpu0, tempo restante: 1s
+[153s] processo22 terminou de executar no instante 153 s (saída: processo22 153 137)
+[153s] processo56 está executando na Cpu1, tempo restante: 2s
+[154s] processo57 está executando na Cpu1, tempo restante: 2s
+[155s] processo58 está executando na Cpu1, tempo restante: 2s
+[156s] processo59 está executando na Cpu1, tempo restante: 2s
+[157s] processo60 está executando na Cpu0, tempo restante: 2s
+[158s] processo61 está executando na Cpu1, tempo restante: 2s
+[159s] processo62 está executando na Cpu2, tempo restante: 1s
+[160s] processo62 terminou de executar no instante 160 s (saída: processo62 160 125)
+[160s] processo63 está executando na Cpu2, tempo restante: 2s
+[161s] processo64 está executando na Cpu2, tempo restante: 2s
+[162s] processo65 está executando na Cpu2, tempo restante: 1s
+[163s] processo65 terminou de executar no instante 163 s (saída: processo65 163 127)
+[163s] processo67 está executando na Cpu2, tempo restante: 2s
+[164s] processo26 está executando na Cpu2, tempo restante: 2s
+[165s] processo68 está executando na Cpu0, tempo restante: 3s
+[166s] processo69 está executando na Cpu2, tempo restante: 2s
+[167s] processo70 está executando na Cpu3, tempo restante: 3s
+[168s] processo71 está executando na Cpu1, tempo restante: 2s
+[169s] processo74 está executando na Cpu1, tempo restante: 2s
+[170s] processo75 está executando na Cpu3, tempo restante: 2s
+[171s] processo28 está executando na Cpu0, tempo restante: 2s
+[172s] processo78 está executando na Cpu3, tempo restante: 1s
+[173s] processo78 terminou de executar no instante 173 s (saída: processo78 173 132)
+[173s] processo79 está executando na Cpu3, tempo restante: 1s
+[174s] processo79 terminou de executar no instante 174 s (saída: processo79 174 133)
+[174s] processo29 está executando na Cpu2, tempo restante: 2s
+[175s] processo80 está executando na Cpu1, tempo restante: 2s
+[176s] processo30 está executando na Cpu2, tempo restante: 2s
+[177s] processo82 está executando na Cpu2, tempo restante: 2s
+[178s] processo83 está executando na Cpu0, tempo restante: 3s
+[179s] processo85 está executando na Cpu0, tempo restante: 3s
+[180s] processo86 está executando na Cpu2, tempo restante: 1s
+[181s] processo86 terminou de executar no instante 181 s (saída: processo86 181 137)
+[181s] processo87 está executando na Cpu3, tempo restante: 1s
+[182s] processo87 terminou de executar no instante 182 s (saída: processo87 182 137)
+[182s] processo88 está executando na Cpu3, tempo restante: 1s
+[183s] processo88 terminou de executar no instante 183 s (saída: processo88 183 138)
+[183s] processo89 está executando na Cpu1, tempo restante: 3s
+[184s] processo90 está executando na Cpu3, tempo restante: 1s
+[185s] processo90 terminou de executar no instante 185 s (saída: processo90 185 139)
+[185s] processo33 está executando na Cpu2, tempo restante: 1s
+[186s] processo33 terminou de executar no instante 186 s (saída: processo33 186 163)
+[186s] processo91 está executando na Cpu3, tempo restante: 1s
+[187s] processo91 terminou de executar no instante 187 s (saída: processo91 187 140)
+[187s] processo92 está executando na Cpu3, tempo restante: 3s
+[188s] processo93 está executando na Cpu1, tempo restante: 2s
+[189s] processo94 está executando na Cpu0, tempo restante: 1s
+[190s] processo94 terminou de executar no instante 190 s (saída: processo94 190 142)
+[190s] processo96 está executando na Cpu3, tempo restante: 1s
+[191s] processo96 terminou de executar no instante 191 s (saída: processo96 191 143)
+[191s] processo97 está executando na Cpu3, tempo restante: 3s
+[192s] processo98 está executando na Cpu1, tempo restante: 1s
+[193s] processo98 terminou de executar no instante 193 s (saída: processo98 193 145)
+[193s] processo34 está executando na Cpu2, tempo restante: 2s
+[194s] processo36 está executando na Cpu2, tempo restante: 1s
+[195s] processo36 terminou de executar no instante 195 s (saída: processo36 195 171)
+[195s] processo37 está executando na Cpu1, tempo restante: 2s
