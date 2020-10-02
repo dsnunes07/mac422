@@ -452,7 +452,6 @@ void round_robin(struct ProcessList* incoming) {
     receive_new_processes(local_time, &incoming, &waiting);
     // interrupt currently running process
     if (running != NULL) {
-      // if process have not finished yet, put it in the end of the "queue"
       running->exec_time = running->exec_time + quantum;
       running->tf = local_time;
       running->tr = running->tf - running->arrival_time;
@@ -464,6 +463,7 @@ void round_robin(struct ProcessList* incoming) {
         print_events_to_stderr(PROCESS_FINISHED, local_time, running, NULL);
         running = NULL;
       } else {
+        // if process have not finished yet, put it in the end of the "queue"
         list_append(&waiting, running);
       }
     }
