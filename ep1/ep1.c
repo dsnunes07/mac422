@@ -1,9 +1,11 @@
+#define _GNU_SOURCE
 #include <limits.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sched.h>
 
 #define MAX_LINE_LENGTH 128
 
@@ -29,6 +31,7 @@ struct Process {
   int tf;
   int tr;
   int exec_time;
+  int cpu_running;
   pthread_t thread;
   pthread_mutex_t interrupt;
 };
@@ -100,16 +103,20 @@ int time_left(struct Process* p) {
 }
 
 void list_insert_by_time_left(struct ProcessList **head, struct Process* process) {
+  if (process == NULL)
+    return;
+
   struct ProcessList* current;
   struct ProcessList* new_process = malloc(sizeof(struct ProcessList*));
   new_process->process = process;
   new_process->next = NULL;
+  // if arriving process is shorter than the shortest process
   if (*head == NULL || time_left((*head)->process) >= time_left(process)) {
     new_process->next = *head;
     *head = new_process;
   } else {
     current = *head;
-    while (current->next != NULL && time_left(current->process) < time_left((*head)->process)) {
+    while (current->next != NULL && (time_left(new_process->process) >= time_left(current->next->process))) {
       current = current->next;
     }
     new_process->next = current->next;
@@ -141,7 +148,7 @@ void print_events_to_stderr(int event, int time, struct Process* p1, struct Proc
     fprintf(stderr, "[%ds] Chegou no sistema: '%s %d %d %d'\n", time, p1->name, p1->arrival_time, p1->dt, p1->deadline);
     break;
   case PROCESS_RELEASED:
-    fprintf(stderr, "[%ds] %s está executando, tempo restante: %ds\n", time, p1->name, time_left(p1));
+    fprintf(stderr, "[%ds] %s está executando na Cpu%d, tempo restante: %ds\n", time, p1->name, p1->cpu_running, time_left(p1));
     break;
   case PROCESS_INTERRUPTED:
     fprintf(stderr, "[%ds] Processo %s (tempo restante: %ds) foi substituído por %s (tempo restante: %ds)\n", time, p1->name, time_left(p1), p2->name, time_left(p2));
@@ -186,6 +193,7 @@ void *preemptive_worker(void *args) {
   while(time_left(process) > 0) {
     // but it can be interrupted
     pthread_mutex_lock(&(process->interrupt));
+    process->cpu_running = sched_getcpu();
     pthread_mutex_unlock(&(process->interrupt));
   }
   process->tr = process->tf - process->arrival_time;
@@ -296,8 +304,9 @@ struct Process* get_shortest_process_at_time(int clock_time, struct ProcessList 
     // gets only the first shortest process
     if (p->dt < min_dt) {
       // stores the previous shortest process if a faster one has been found
-      if (shortest_process != NULL)
+      if (shortest_process != NULL) {
         list_insert_by_time_left(ready, shortest_process);
+      }
       min_dt = p->dt;
       shortest_process = p;
     } else {
@@ -305,7 +314,6 @@ struct Process* get_shortest_process_at_time(int clock_time, struct ProcessList 
     }
     *incoming = (*incoming)->next;
   }
-
   return shortest_process;
 }
 
@@ -349,7 +357,6 @@ void srtn(struct ProcessList* incoming) {
     if (running != NULL && process_finished(running)) {
       // let thread exit if necessary
       release_process(running);
-      // // printf("processo %s liberado para terminar\n", running->name);
       wait_finish(running);
       running->exec_time = running->exec_time + 1;
       running->tf = running->tf + 1;
@@ -370,7 +377,7 @@ void srtn(struct ProcessList* incoming) {
         release_process(running);
         // if new process is shortest than currently running process
       } else if (arrived->dt < time_left(running) + 1) {
-        running->exec_time--;
+        running->exec_time = running->exec_time - 1;
         list_insert_by_time_left(&ready, running);
         print_events_to_stderr(PROCESS_INTERRUPTED, simulation->seconds_elapsed, running, arrived);
         release_process(arrived);
@@ -399,7 +406,6 @@ void srtn(struct ProcessList* incoming) {
         struct Process* next_ready = list_pop(&ready);
         if (next_ready != NULL) {
           release_process(next_ready);
-          // printf("processo %s liberado\n", next_ready->name);
           running = next_ready;
           simulation->context_switches++;
         }
@@ -463,6 +469,7 @@ struct Process* current_process(char* line) {
   pthread_mutex_lock(&interrupt);
   process->thread = process_thread;
   process->interrupt = interrupt;
+  process->cpu_running = -1;
   return process;
 }
 
