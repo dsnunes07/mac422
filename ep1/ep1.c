@@ -255,24 +255,30 @@ void fcfs(struct ProcessList* incoming) {
   // while there are still processes left to run
   while (incoming != NULL || ready != NULL || running != NULL) {
     pthread_mutex_lock(&scheduler_mutex);
+    // scheduler will update the time if clock is late
+    if (local_time > 0 && get_current_time() == local_time) {
+      simulation->seconds_elapsed++;
+    }
     local_time = get_current_time();
 
-    // updates currently running process
+    /* // updates currently running process
     if (running != NULL) {
       print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
       running->exec_time++;
       running->tf = local_time;
-    }
+    } */
 
     // if a process running has finished, stop it
     if (running != NULL && process_finished(running)) {
       release_process(running);
       wait_finish(running);
-      running->exec_time = running->exec_time + 1;
-      running->tf = running->tf + 1;
       running->tr = running->tf - running->arrival_time;
-      print_events_to_stderr(PROCESS_FINISHED, local_time + 1, running, NULL);
+      print_events_to_stderr(PROCESS_FINISHED, local_time, running, NULL);
       running = NULL;
+    } else if (running != NULL) {
+      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+      running->exec_time++;
+      running->tf = local_time;
     }
     // get all incoming processes for current time
     get_processes_arriving_now(local_time, &incoming, &ready);
@@ -289,7 +295,7 @@ void fcfs(struct ProcessList* incoming) {
     }
     pthread_cond_signal(&scheduler_worked);
     pthread_mutex_unlock(&scheduler_mutex);
-    sleep_for(1);
+    sleep_for(1.0);
   }
 }
 
@@ -417,14 +423,82 @@ void srtn(struct ProcessList* incoming) {
   }
 }
 
+void receive_new_processes(int clock, struct ProcessList **incoming, struct ProcessList **waiting) {
+  while (*incoming != NULL && (*incoming)->process->arrival_time <= clock) {
+    struct Process* p = (*incoming)->process;
+    list_append(waiting, p);
+    print_events_to_stderr(PROCESS_ARRIVED, clock, p, NULL);
+    *incoming = (*incoming)->next;
+  }
+}
+
+void round_robin(struct ProcessList* incoming) {
+  // linked list containing processes that are waiting
+  // for their turn to run. This list will work as a 
+  // queue
+  struct ProcessList* waiting = NULL;
+  // reference to currently running process
+  struct Process* running = NULL;
+  // round robin quantum, in seconds
+  int quantum = 1;
+  // scheduler time register, this implementation do not use 
+  // a separate thread to count time
+  int local_time = 0;
+  // starts all processes with initial state locked
+  start_threads(incoming);
+  int i = 0;
+  while (running != NULL || incoming != NULL || waiting != NULL) {
+    // get all new processes that may have arrived
+    receive_new_processes(local_time, &incoming, &waiting);
+    // interrupt currently running process
+    if (running != NULL) {
+      running->exec_time+=quantum;
+      running->tf = local_time;
+      running->tr = running->tf - running->arrival_time;
+      interrupt_process(running);
+      // check if this process has finished
+      if (time_left(running) <= 0) {
+        release_process(running);
+        wait_finish(running);
+        if (running->exec_time <= 0) {
+          running->tf += running->exec_time;
+          running->tr = running->tf - running->arrival_time;
+          running->exec_time = 0;
+        }
+        print_events_to_stderr(PROCESS_FINISHED, local_time, running, NULL);
+        running = NULL;
+      } else {
+        // if process have not finished yet, put it in the end of the "queue"
+        list_append(&waiting, running);
+      }
+    }
+
+    // get and release the next process
+    struct Process* next = list_pop(&waiting);
+    if (next != NULL) {
+      release_process(next);
+      running = next;
+      simulation->context_switches++;
+      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+    } else {
+      running = NULL;
+    }
+    // simulates time passing
+    sleep_for(0.2);
+    // updates time by quantum
+    local_time += quantum;
+  }
+
+}
+
 void print_output_file(struct ProcessList* trace) {
-  FILE *fp = fopen(output_filename, "w");
+  FILE *fp = fopen(output_filename, "a");
   while (trace != NULL) {
     struct Process *p = trace->process;
     fprintf(fp, "%s %d %d\n", p->name, p->tf, p->tr);
     trace = trace->next;
   }
-  fprintf(fp, "%d", simulation->context_switches);
+  fprintf(fp, "%d\n", simulation->context_switches);
   fclose(fp);
 }
 
@@ -439,6 +513,11 @@ void simulate(struct ProcessList* trace) {
     fcfs(trace);
   } else if (scheduler == 2) {
     srtn(trace);
+  } else if (scheduler == 3) {
+    round_robin(trace);
+  } else {
+    fprintf(stderr, "error: invalid scheduler\n");
+    exit(1);
   }
 
   print_output_file(trace);
