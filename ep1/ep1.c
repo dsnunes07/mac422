@@ -443,7 +443,6 @@ void round_robin(struct ProcessList* incoming) {
   start_threads(incoming);
   int i = 0;
   while (running != NULL || incoming != NULL || waiting != NULL) {
-    pthread_mutex_lock(&scheduler_mutex);
     // get all new processes that may have arrived
     receive_new_processes(local_time, &incoming, &waiting);
     // interrupt currently running process
@@ -479,10 +478,8 @@ void round_robin(struct ProcessList* incoming) {
     } else {
       running = NULL;
     }
-    
-    pthread_cond_signal(&scheduler_worked);
-    pthread_mutex_unlock(&scheduler_mutex);
-    sleep_for(quantum);
+    // simulates time passing
+    sleep_for(0.2);
     // updates time by quantum
     local_time += quantum;
   }
