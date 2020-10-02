@@ -436,23 +436,19 @@ void round_robin(struct ProcessList* incoming) {
   struct Process* running = NULL;
   // round robin quantum, in seconds
   int quantum = 1;
-  // scheduler time register
+  // scheduler time register, this implementation do not use 
+  // a separate thread to count time
   int local_time = 0;
   // starts all processes with initial state locked
   start_threads(incoming);
-  // clock thread
-  pthread_t clock;
-  pthread_create(&clock, NULL, time_pass, NULL);
-
+  int i = 0;
   while (running != NULL || incoming != NULL || waiting != NULL) {
     pthread_mutex_lock(&scheduler_mutex);
-    // get updated time from the clock
-    local_time = get_current_time();
     // get all new processes that may have arrived
     receive_new_processes(local_time, &incoming, &waiting);
     // interrupt currently running process
     if (running != NULL) {
-      running->exec_time = running->exec_time + quantum;
+      running->exec_time+=quantum;
       running->tf = local_time;
       running->tr = running->tf - running->arrival_time;
       interrupt_process(running);
@@ -460,6 +456,11 @@ void round_robin(struct ProcessList* incoming) {
       if (time_left(running) <= 0) {
         release_process(running);
         wait_finish(running);
+        if (running->exec_time <= 0) {
+          running->tf += running->exec_time;
+          running->tr = running->tf - running->arrival_time;
+          running->exec_time = 0;
+        }
         print_events_to_stderr(PROCESS_FINISHED, local_time, running, NULL);
         running = NULL;
       } else {
@@ -481,7 +482,9 @@ void round_robin(struct ProcessList* incoming) {
     
     pthread_cond_signal(&scheduler_worked);
     pthread_mutex_unlock(&scheduler_mutex);
-    sleep_for(quantum + 1);
+    sleep_for(quantum);
+    // updates time by quantum
+    local_time += quantum;
   }
 
 }
