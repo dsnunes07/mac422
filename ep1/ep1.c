@@ -166,17 +166,6 @@ void sleep_for(double sec) {
   usleep(sec*1000000);
 }
 
-void *time_pass(void *args) {
-  while (1) {
-    pthread_mutex_lock(&scheduler_mutex);
-    pthread_cond_wait(&scheduler_worked, &scheduler_mutex);
-    simulation->seconds_elapsed++;
-    sleep_for(1);
-    pthread_mutex_unlock(&scheduler_mutex);
-  }
-  return NULL;
-}
-
 int get_current_time() {
   int time = 0;
   // pthread_mutex_lock(&clock_mutex);
@@ -244,9 +233,6 @@ void fcfs(struct ProcessList* incoming) {
   struct ProcessList* ready = NULL;
   // creates threads for all incoming processes
   start_threads(incoming);
-  // starts the clock
-  pthread_t clock_thread;
-  pthread_create(&clock_thread, NULL, time_pass, NULL);
   // process currently running
   struct Process* running = NULL;
   // keep local_time registered on scheduler
@@ -281,7 +267,7 @@ void fcfs(struct ProcessList* incoming) {
         running->tf = local_time;
       }
     }
-    sleep_for(0.5);
+    // sleep_for(0.5);
     // updates time
     local_time+=1;
   }
@@ -328,9 +314,6 @@ void srtn(struct ProcessList* incoming) {
   struct Process* running = NULL;
   // shortest process arrived at current time
   struct Process* arrived = NULL;
-
-  pthread_t clock_thread;
-  pthread_create(&clock_thread, NULL, time_pass, NULL);
   // while exists processes waiting to run
   while (incoming != NULL || ready != NULL || running != NULL) {
     // receive a process which may have arrived
@@ -406,7 +389,7 @@ void srtn(struct ProcessList* incoming) {
         }
       }
     }
-    sleep_for(0.5);
+    // sleep_for(0.5);
     // updates the clock
     local_time+=1;
   }
@@ -473,7 +456,7 @@ void round_robin(struct ProcessList* incoming) {
       running = NULL;
     }
     // simulates time passing
-    sleep_for(0.2);
+    // sleep_for(0.2);
     // updates time by quantum
     local_time += quantum;
   }
