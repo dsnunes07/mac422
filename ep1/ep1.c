@@ -227,8 +227,12 @@ void fcfs(struct ProcessList* incoming) {
   struct Process* running = NULL;
   // keep local_time registered on scheduler
   int local_time = 0;
+  // flag to indicate if a process was running immediately
+  // before a new one start
+  int was_running = 0;
   // while there are still processes left to run
   while (incoming != NULL || ready != NULL || running != NULL) {
+    was_running = 0;
     // if a process running has finished, stop it
     if (running != NULL && process_finished(running)) {
       release_process(running);
@@ -236,11 +240,13 @@ void fcfs(struct ProcessList* incoming) {
       running->tf = local_time;
       running->tr = running->tf - running->arrival_time;
       print_events_to_stderr(PROCESS_FINISHED, local_time, running, NULL);
+      was_running = 1;
       running = NULL;
     } else if (running != NULL) {
       print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
       running->exec_time++;
       running->tf = local_time;
+      was_running = 1;
     }
     // get all incoming processes for current time
     get_processes_arriving_now(local_time, &incoming, &ready);
@@ -255,6 +261,8 @@ void fcfs(struct ProcessList* incoming) {
         print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
         running->exec_time++;
         running->tf = local_time;
+        if(was_running)
+          simulation->context_switches++;
       }
     }
     // sleep_for(0.5);
@@ -406,10 +414,13 @@ void round_robin(struct ProcessList* incoming) {
   // scheduler time register, this implementation do not use 
   // a separate thread to count time
   int local_time = 0;
+  // flag to indicate if a process was running when a new one starts
+  int was_running = 0;
   // starts all processes with initial state locked
   start_threads(incoming);
   int i = 0;
   while (running != NULL || incoming != NULL || waiting != NULL) {
+    was_running = 0;
     // get all new processes that may have arrived
     receive_new_processes(local_time, &incoming, &waiting);
     // interrupt currently running process
@@ -418,6 +429,7 @@ void round_robin(struct ProcessList* incoming) {
       running->tf = local_time;
       running->tr = running->tf - running->arrival_time;
       interrupt_process(running);
+      was_running = 1;
       // check if this process has finished
       if (time_left(running) <= 0) {
         release_process(running);
@@ -440,7 +452,8 @@ void round_robin(struct ProcessList* incoming) {
     if (next != NULL) {
       release_process(next);
       running = next;
-      simulation->context_switches++;
+      if (was_running)
+        simulation->context_switches++;
       print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
     } else {
       running = NULL;
