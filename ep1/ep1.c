@@ -171,6 +171,7 @@ void *preemptive_worker(void *args) {
   while(time_left(process) > 0) {
     // but it can be interrupted
     process->cpu_running = sched_getcpu();
+    sleep_for(1);
     pthread_mutex_lock(&(process->interrupt));
     pthread_mutex_unlock(&(process->interrupt));
   }
@@ -265,7 +266,6 @@ void fcfs(struct ProcessList* incoming) {
           simulation->context_switches++;
       }
     }
-    // sleep_for(0.5);
     // updates time
     local_time+=1;
   }
@@ -307,6 +307,10 @@ void srtn(struct ProcessList* incoming) {
   /* start threads of every incoming processes,
   all of them are initially stopped */
   start_threads(incoming);
+
+  // verify if a process was running or finish at the time that
+  // another process started to run
+  int was_running = 0;
   
   // currently running process
   struct Process* running = NULL;
@@ -314,6 +318,7 @@ void srtn(struct ProcessList* incoming) {
   struct Process* arrived = NULL;
   // while exists processes waiting to run
   while (incoming != NULL || ready != NULL || running != NULL) {
+    was_running = 0;
     // receive a process which may have arrived
     arrived = get_shortest_process_at_time(local_time, &incoming, &ready);
     
@@ -328,6 +333,7 @@ void srtn(struct ProcessList* incoming) {
       print_events_to_stderr(PROCESS_FINISHED, local_time, running, NULL);
       // process is no longer running
       running = NULL;
+      was_running = 1;
     }
 
     if (running != NULL) {
@@ -336,6 +342,7 @@ void srtn(struct ProcessList* incoming) {
       running->tf = local_time;
       // interrupt current process
       interrupt_process(running);
+      was_running = 1;
 
       // if no process has arrived
       if (arrived == NULL) {
@@ -368,6 +375,8 @@ void srtn(struct ProcessList* incoming) {
           print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
           running->exec_time++;
           running->tf = local_time;
+          if (was_running)
+            simulation->context_switches++;
         } else {
           list_insert_by_time_left(&ready, next_ready);
           release_process(arrived);
@@ -375,6 +384,8 @@ void srtn(struct ProcessList* incoming) {
           print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
           running->exec_time++;
           running->tf = local_time;
+          if (was_running)
+            simulation->context_switches++;
         }
       } else {
         struct Process* next_ready = list_pop(&ready);
@@ -384,6 +395,8 @@ void srtn(struct ProcessList* incoming) {
           print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
           running->exec_time++;
           running->tf = local_time;
+          if (was_running)
+            simulation->context_switches++;
         }
       }
     }
