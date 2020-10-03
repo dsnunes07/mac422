@@ -44,7 +44,6 @@ struct ProcessList {
 
 // structure containing simulation data
 struct Simulation {
-  int seconds_elapsed;
   int context_switches;
 };
 
@@ -166,17 +165,8 @@ void sleep_for(double sec) {
   usleep(sec*1000000);
 }
 
-int get_current_time() {
-  int time = 0;
-  // pthread_mutex_lock(&clock_mutex);
-  time = simulation->seconds_elapsed;
-  // pthread_mutex_unlock(&clock_mutex);
-  return time;
-}
-
 void *preemptive_worker(void *args) {
   struct Process* process = (struct Process*) args;
-  int seconds_elapsed = 0;
   // process executes until the end
   while(time_left(process) > 0) {
     // but it can be interrupted
@@ -477,7 +467,6 @@ void print_output_file(struct ProcessList* trace) {
 void simulate(struct ProcessList* trace) {
   // initialize a new clock for simulation
   simulation = malloc(sizeof(struct Simulation*));
-  simulation->seconds_elapsed = 0;
   simulation->context_switches = 0;
   pthread_mutex_init(&scheduler_mutex, NULL);
   pthread_cond_init(&scheduler_worked, NULL);
