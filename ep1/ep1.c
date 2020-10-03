@@ -188,12 +188,11 @@ int get_current_time() {
 void *preemptive_worker(void *args) {
   struct Process* process = (struct Process*) args;
   int seconds_elapsed = 0;
-
   // process executes until the end
   while(time_left(process) > 0) {
     // but it can be interrupted
-    pthread_mutex_lock(&(process->interrupt));
     process->cpu_running = sched_getcpu();
+    pthread_mutex_lock(&(process->interrupt));
     pthread_mutex_unlock(&(process->interrupt));
   }
   process->tr = process->tf - process->arrival_time;
@@ -254,13 +253,6 @@ void fcfs(struct ProcessList* incoming) {
   int local_time = 0;
   // while there are still processes left to run
   while (incoming != NULL || ready != NULL || running != NULL) {
-    pthread_mutex_lock(&scheduler_mutex);
-    // scheduler will update the time if clock is late
-    if (local_time > 0 && get_current_time() == local_time) {
-      simulation->seconds_elapsed++;
-    }
-    local_time = get_current_time();
-
     // if a process running has finished, stop it
     if (running != NULL && process_finished(running)) {
       release_process(running);
@@ -284,12 +276,14 @@ void fcfs(struct ProcessList* incoming) {
         // starts arrived process
         release_process(next_ready);
         running = next_ready;
-        simulation->context_switches++;
+        print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+        running->exec_time++;
+        running->tf = local_time;
       }
     }
-    pthread_cond_signal(&scheduler_worked);
-    pthread_mutex_unlock(&scheduler_mutex);
     sleep_for(0.5);
+    // updates time
+    local_time+=1;
   }
 }
 
@@ -339,31 +333,26 @@ void srtn(struct ProcessList* incoming) {
   pthread_create(&clock_thread, NULL, time_pass, NULL);
   // while exists processes waiting to run
   while (incoming != NULL || ready != NULL || running != NULL) {
-    pthread_mutex_lock(&scheduler_mutex);
-    local_time = get_current_time();
-    if (running != NULL) {
-      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
-      running->exec_time++;
-      running->tf = local_time;
-    }
     // receive a process which may have arrived
     arrived = get_shortest_process_at_time(local_time, &incoming, &ready);
     
     // check if a running process has finished
-    if (running != NULL && process_finished(running)) {
+    if (running != NULL && time_left(running) == 0) {
       // let thread exit if necessary
       release_process(running);
       wait_finish(running);
-      running->exec_time = running->exec_time + 1;
-      running->tf = running->tf + 1;
+      running->tf = local_time;
       running->tr = running->tf - running->arrival_time;
       // print to stderr if user requested
-      print_events_to_stderr(PROCESS_FINISHED, local_time + 1, running, NULL);
+      print_events_to_stderr(PROCESS_FINISHED, local_time, running, NULL);
       // process is no longer running
       running = NULL;
     }
 
     if (running != NULL) {
+      print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+      running->exec_time++;
+      running->tf = local_time;
       // interrupt current process
       interrupt_process(running);
 
@@ -375,10 +364,14 @@ void srtn(struct ProcessList* incoming) {
       } else if (arrived->dt < time_left(running) + 1) {
         running->exec_time = running->exec_time - 1;
         list_insert_by_time_left(&ready, running);
-        print_events_to_stderr(PROCESS_INTERRUPTED, simulation->seconds_elapsed, running, arrived);
+        print_events_to_stderr(PROCESS_INTERRUPTED, local_time, running, arrived);
         release_process(arrived);
         running = arrived;
         simulation->context_switches++;
+        print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+        running->exec_time++;
+        running->tf = local_time;
+
       } else {
         // current process still faster than the new one
         list_insert_by_time_left(&ready, arrived);
@@ -391,25 +384,31 @@ void srtn(struct ProcessList* incoming) {
           list_insert_by_time_left(&ready, arrived);
           release_process(next_ready);
           running = next_ready;
-          simulation->context_switches++;
+          print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+          running->exec_time++;
+          running->tf = local_time;
         } else {
           list_insert_by_time_left(&ready, next_ready);
           release_process(arrived);
           running = arrived;
-          simulation->context_switches++;
+          print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+          running->exec_time++;
+          running->tf = local_time;
         }
       } else {
         struct Process* next_ready = list_pop(&ready);
         if (next_ready != NULL) {
           release_process(next_ready);
           running = next_ready;
-          simulation->context_switches++;
+          print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
+          running->exec_time++;
+          running->tf = local_time;
         }
       }
     }
-    pthread_cond_signal(&scheduler_worked);
-    pthread_mutex_unlock(&scheduler_mutex);
     sleep_for(0.5);
+    // updates the clock
+    local_time+=1;
   }
 }
 
