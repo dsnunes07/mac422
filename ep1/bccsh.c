@@ -87,16 +87,12 @@ struct Node* split_command(char* line, char* delimiter) {
 
 const char** copy_to_array(struct Node* args) {
   int argc = count_linked_list(args);
-  // debug
-  // printf("Number of args: %d\n", argc);
   const char **params = malloc((argc + 1) * sizeof(char *));
   int i = 0;
 
   while (args != NULL) {
     params[i] = args->data;
     args = args->next;
-    // debug
-    // printf("params %d == %s\n", i, params[i]);
     i++;
   }
 
@@ -166,12 +162,6 @@ void process_input(char* line) {
   } else {
     waitpid(pid, NULL, 0);
   }
-  
-  /* int argc = count_linked_list(args);
-  for (int i=0; i < argc; i++) {
-    printf("%s\n", args_arr[i]);
-  } */
-
 }
 
 void interactive_loop() {

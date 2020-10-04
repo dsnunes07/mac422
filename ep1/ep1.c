@@ -47,10 +47,8 @@ struct Simulation {
   int context_switches;
 };
 
-pthread_mutex_t clock_mutex;
 pthread_mutex_t scheduler_mutex;
 pthread_cond_t scheduler_worked;
-
 
 // global simulator clock
 struct Simulation* simulation;
@@ -160,7 +158,6 @@ void print_events_to_stderr(int event, int time, struct Process* p1, struct Proc
   }
 }
 
-
 void sleep_for(double sec) {
   usleep(sec*1000000);
 }
@@ -171,7 +168,7 @@ void *preemptive_worker(void *args) {
   while(time_left(process) > 0) {
     // but it can be interrupted
     process->cpu_running = sched_getcpu();
-    //sleep_for(1);
+    sleep_for(1);
     pthread_mutex_lock(&(process->interrupt));
     pthread_mutex_unlock(&(process->interrupt));
   }
