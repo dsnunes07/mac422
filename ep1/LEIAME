@@ -1,0 +1,20 @@
+MAC0422 - Sistemas Operacionais
+EP1
+Outubro, 2020.
+
+Arthur Ryuichi Yamashiro Kubagawa
+Daniel Silva Nunes
+
+
+* COMPILAÇÃO
+
+Para compilar o binário bccsh e o binário ep1, basta executar o comando make no diretório em que o arquivo Makefile está.
+
+Para compilar cada binário individualmente, executar make bccsh ou make ep1.
+
+* EXECUÇÃO
+
+Para usar o bccsh, executar ./bccsh. 
+
+Para simular os processos no ep1 através do bccsh ou não, executar 
+./ep1 escalonador tracefile arquivo_de_saida [-d]
