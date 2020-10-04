@@ -171,7 +171,7 @@ void *preemptive_worker(void *args) {
   while(time_left(process) > 0) {
     // but it can be interrupted
     process->cpu_running = sched_getcpu();
-    sleep_for(1);
+    //sleep_for(1);
     pthread_mutex_lock(&(process->interrupt));
     pthread_mutex_unlock(&(process->interrupt));
   }
@@ -400,7 +400,6 @@ void srtn(struct ProcessList* incoming) {
         }
       }
     }
-    // sleep_for(0.5);
     // updates the clock
     local_time+=1;
   }
@@ -465,14 +464,12 @@ void round_robin(struct ProcessList* incoming) {
     if (next != NULL) {
       release_process(next);
       running = next;
-      if (was_running)
+      if (was_running && waiting != NULL)
         simulation->context_switches++;
       print_events_to_stderr(PROCESS_RELEASED, local_time, running, NULL);
     } else {
       running = NULL;
     }
-    // simulates time passing
-    // sleep_for(0.2);
     // updates time by quantum
     local_time += quantum;
   }
