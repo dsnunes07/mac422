@@ -6,6 +6,6 @@ EPs de Sistemas Operacionais
 
 * EP2 - entrega até 05/11
 
-    * Texto sobre modularização de código em C: https://www.cs.bu.edu/teaching/c/separate-compilation/
+    * Texto sobre modularização de código em C: https://www.icosaedro.it/c-modules.html
 
 * EP3 - entrega até 07/12
