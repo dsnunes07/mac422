@@ -13,9 +13,10 @@ void *pedal(void * args) {
   }
 }
 
+/* name i-th cyclist as ciclista_i+1 */
 void name_cyclist(int i, char** name) {
-  *name = malloc((10 + i) * sizeof(char));
-  snprintf(*name, 10 + i, "ciclista_%d", i);
+  *name = malloc((11 + i) * sizeof(char));
+  snprintf(*name, 11 + i, "ciclista_%d", i+1);
 }
 /* picks a random integer between low and high to associate it to a cyclist */
 int draw_cyclist_number(int low, int high) {
@@ -44,6 +45,7 @@ struct Cyclist* create_cyclists(int n) {
   return cyclists;
 }
 
+/* print all members of cyclist struct in a single line, without labels */
 void print_cyclist_data(struct Cyclist *c) {
   printf("%s  %d  %s  %d  %d  %d\n", c->name, c->number, c->country, c->speed, c->position, c->lane);
 }
