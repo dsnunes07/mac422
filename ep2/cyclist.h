@@ -20,6 +20,7 @@ implementation. */
 
 /* Types declarations here */
 struct Cyclist {
+  int id;
   char* name;
   int number;
   char* country;

@@ -7,16 +7,18 @@
 /* function that each cyclist thread will execute */
 void *pedal(void * args) {
   struct Cyclist *c = (struct Cyclist*) args;
-  while (1) {
+  /* while (1) {
     printf("%s aquecendo...\n", c->name);
     sleep(1);
-  }
+  } */
+  printf("I am %s and I will race tonight\n", c->name);
+
 }
 
 /* name i-th cyclist as ciclista_i+1 */
 void name_cyclist(int i, char** name) {
   *name = malloc((11 + i) * sizeof(char));
-  snprintf(*name, 11 + i, "ciclista_%d", i+1);
+  snprintf(*name, 11 + i, "ciclista_%d", i);
 }
 /* picks a random integer between low and high to associate it to a cyclist */
 int draw_cyclist_number(int low, int high) {
@@ -29,6 +31,7 @@ struct Cyclist* create_cyclists(int n) {
   cyclists = malloc(n*sizeof(struct Cyclist));
   for (int i=0; i < n; i++) {
     name_cyclist(i+1, &(cyclists[i].name));
+    cyclists[i].id = i;
     cyclists[i].number = draw_cyclist_number(i, n);
     cyclists[i].country = "Brasil";
     cyclists[i].speed = 0;
