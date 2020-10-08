@@ -1,10 +1,16 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "cyclist.h"
+#include "race.h"
+
+char* usage_msg = "usage: ./ep2 n d\n";
 
 int main(int argc, char **argv) {
-    for (int i=0; i < 10; i++) {
-        int number = draw_cyclist_number(1, 10);
-        printf("Cyclist number is %d\n", number);
-    }
+  if (argc != 3) {
+    printf("%s", usage_msg);
+    exit(1);
+  }
+
+  int d = atoi(argv[1]);
+  int n = atoi(argv[2]);
+  configure_race(d, n);
 }
