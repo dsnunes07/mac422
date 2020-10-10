@@ -9,7 +9,6 @@ struct Cyclist *cyclists;
 int *velodrome;
 
 void put_cyclists_on_start_line(struct Cyclist *cyclists, int n) {
-  printf("start line positions:\n");
   int groups = n/5;
   // puts the full groups
   for (int i=0; i<=groups; i++) {
@@ -24,6 +23,8 @@ void configure_race(int d, int n) {
   cyclists = create_cyclists(n);
   shuffle_cyclists(cyclists, n);
   put_cyclists_on_start_line(cyclists, n);
+  
+  printf("start line positions:\n");
   for (int i=0; i <= n/5; i++)
     print_velodrome_position(i);
 }
