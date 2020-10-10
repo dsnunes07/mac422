@@ -39,6 +39,8 @@ EXTERN int draw_cyclist_number(int low, int high);
 
 EXTERN void print_cyclist_data(struct Cyclist *c);
 
+EXTERN void shuffle_cyclists(struct Cyclist *cyclists, int n);
+
 #undef cyclist_IMPORT
 #undef EXTERN
 #endif

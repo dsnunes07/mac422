@@ -7,11 +7,6 @@
 /* function that each cyclist thread will execute */
 void *pedal(void * args) {
   struct Cyclist *c = (struct Cyclist*) args;
-  /* while (1) {
-    printf("%s aquecendo...\n", c->name);
-    sleep(1);
-  } */
-  printf("I am %s and I will race tonight\n", c->name);
 
 }
 
@@ -39,16 +34,25 @@ struct Cyclist* create_cyclists(int n) {
     cyclists[i].lane = 0;
     pthread_create(&(cyclists[i].thread), NULL, pedal, &(cyclists[i]));
   }
-
-  // let cyclists warming up...
-  for (int i=0; i < n; i++) {
-    pthread_join(cyclists[i].thread, NULL);
-  }
-
   return cyclists;
 }
 
 /* print all members of cyclist struct in a single line, without labels */
 void print_cyclist_data(struct Cyclist *c) {
-  printf("%s  %d  %s  %d  %d  %d\n", c->name, c->number, c->country, c->speed, c->position, c->lane);
+  printf("%d %s  %d  %s  %d  %d  %d\n", c->id, c->name, c->number, c->country, c->speed, c->position, c->lane);
+}
+
+/* Shuffle cyclists before place them on start line, so they start in random positions */
+void shuffle_cyclists(struct Cyclist *cyclists, int n) {
+  if (n > 1) {
+    // uses current time as random seed
+    srand(time(NULL));
+    for (int i = 0; i < n; i++) {
+      // draw a random number between 0 and i
+      int random_index = rand() % (i+1);
+      struct Cyclist temp = cyclists[i];
+      cyclists[i] = cyclists[random_index];
+      cyclists[random_index] = temp;
+    }
+  }
 }
