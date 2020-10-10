@@ -32,3 +32,16 @@ int velodrome_position_is_free(int d, int lane) {
     return 1;
   return 0;
 }
+
+/* Prints all velodromes lanes at position d */
+void print_velodrome_position(int d) {
+  printf("Position %dm:\n", d);
+  for (int lane = 0; lane < 10; lane++) {
+    int cyclist_id = get_velodrome_position(d, lane);
+    if (cyclist_id == -1)
+      printf("| |");
+    else
+      printf("%d", cyclist_id);
+  }
+  printf("\n");
+}
