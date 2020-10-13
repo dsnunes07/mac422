@@ -20,7 +20,7 @@ int get_velodrome_position(int d, int lane) {
   return velodrome[d*LANES + lane];
 }
 
-/* Place or remove (by setting -1) an cyclist in a velodrome position */
+/* Place or remove (by setting -1) a cyclist in a velodrome position */
 void set_velodrome_position(int d, int lane, int cyclist_id) {
   velodrome[d*LANES + lane] = cyclist_id;
 }
@@ -33,7 +33,7 @@ int velodrome_position_is_free(int d, int lane) {
   return 0;
 }
 
-/* Prints all velodromes lanes at position d */
+/* Prints all velodrome lanes at position d */
 void print_velodrome_position(int d) {
   printf("Position %dm:\n", d);
   for (int lane = 0; lane < 10; lane++) {

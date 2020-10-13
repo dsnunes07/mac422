@@ -14,4 +14,6 @@
 
 EXTERN void configure_race(int d, int n);
 
+#undef race_IMPORT
+#undef EXTERN
 #endif

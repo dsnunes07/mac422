@@ -25,4 +25,6 @@ EXTERN int velodrome_position_is_free(int d, int lane);
 
 EXTERN void print_velodrome_position(int d);
 
+#undef velodrome_IMPORT
+#undef EXTERN
 #endif
