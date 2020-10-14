@@ -33,7 +33,7 @@ struct Cyclist {
 /* Global variables declarations here */
 
 /* Function prototypes here */
-EXTERN struct Cyclist* create_cyclists(int n);
+EXTERN struct Cyclist* create_cyclists(int n, int *positions);
 
 EXTERN int draw_cyclist_number(int low, int high);
 
