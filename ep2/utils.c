@@ -31,3 +31,8 @@ void print_int_array(int *arr, int n){
     printf("%d ", arr[i]);
   printf("\n");
 }
+
+int flip_coin(int probability) {
+  int result = rand() % 100 < probability;
+  return result;
+}
