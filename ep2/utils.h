@@ -13,6 +13,8 @@ EXTERN void shuffle(int *arr, int n);
 
 EXTERN int random_integer(int low, int high);
 
+EXTERN void print_int_array(int *arr, int n);
+
 #undef utils_IMPORT
 #undef EXTERN
 #endif

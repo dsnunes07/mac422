@@ -28,6 +28,9 @@ struct Cyclist {
   int position;
   int lane;
   pthread_t thread;
+  int step_finished;
+  int can_move_on;
+  int is_root;
 };
 
 /* Global variables declarations here */
@@ -38,6 +41,8 @@ EXTERN struct Cyclist* create_cyclists(int n, int *positions);
 EXTERN int draw_cyclist_number(int low, int high);
 
 EXTERN void print_cyclist_data(struct Cyclist *c);
+
+EXTERN void start_race(void);
 
 #undef cyclist_IMPORT
 #undef EXTERN
