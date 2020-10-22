@@ -14,6 +14,8 @@
 
 EXTERN void configure_race(int d, int n);
 
+EXTERN void start_race(void);
+
 EXTERN void request_updates(struct Cyclist *cyclist);
 
 EXTERN int eliminated(struct Cyclist *cyclist);
