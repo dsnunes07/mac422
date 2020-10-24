@@ -6,7 +6,6 @@
 #include "utils.h"
 
 struct Cyclist *cyclists;
-int *velodrome;
 int total_cyclists;
 int line_crosses = 0;
 
