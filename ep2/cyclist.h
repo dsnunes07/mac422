@@ -30,12 +30,16 @@ struct Cyclist {
   pthread_t thread;
   int still_running;
   int current_lap;
+  int step;
+  int checkpoint_ranking;
 };
 
 /* Global variables declarations here */
 
 /* Function prototypes here */
 EXTERN struct Cyclist* create_cyclists(int n);
+
+EXTERN void initialize_cyclists_threads(struct Cyclist *cyclists, int n);
 
 EXTERN int draw_cyclist_number(int low, int high);
 

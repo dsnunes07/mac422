@@ -33,6 +33,10 @@ int velodrome_position_is_free(int d, int lane) {
   return 0;
 }
 
+void free_velodrome_position(int d, int lane) {
+  set_velodrome_position(d, lane, -1);
+}
+
 /* Prints all velodrome lanes at position d */
 void print_velodrome_position(int d) {
   printf("Position %dm:\n", d);

@@ -8,17 +8,30 @@
 
 int d = 0;
 
-/* Updates cyclist's current position */
-void update_position(struct Cyclist *c) {
-  
+/* check if cyclist completed a lap */
+int new_lap(struct Cyclist *c) {
+  /* step % (d-1) == 0 ==> nova volta */
+  if (c->step != 0 && c->step % d == 0)
+    return 1;
+  return 0;
 }
 
 /* function that each cyclist thread will execute */
 void *pedal(void * args) {
   struct Cyclist *c = (struct Cyclist*) args;
+  // 60ms da corrida
   while (c->still_running) {
-    update_position(c);
+    if (new_lap) {
+      printf("a new lap ladies and gentlemen %d\n", c->step);
+      cross_start_line(c);
+    }
+    // for now, only moves forward at 60km/h
+    update_position(c, (c->position + 1) % d, c->lane);
+    c->step++;
+    advance_time(c);
+    usleep(10000);
   }
+  pthread_exit(NULL);
 }
 
 void initialize_cyclists_threads(struct Cyclist *cyclists, int n) {
@@ -50,8 +63,9 @@ struct Cyclist* create_cyclists(int n) {
     cyclists[i].lane = 0;
     cyclists[i].current_lap = 0;
     cyclists[i].still_running = 1;
+    cyclists[i].step = 0;
+    cyclists[i].checkpoint_ranking = 0;
   }
-  initialize_cyclists_threads(cyclists, n);
   return cyclists;
 }
 
