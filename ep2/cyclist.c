@@ -20,7 +20,6 @@ int lap_is_even(struct Cyclist *c) {
   if (c->step % 2*d == 0) {
     return 1;
   }
-    
   return 0;
 }
 
