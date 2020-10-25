@@ -78,8 +78,11 @@ void eliminate(struct Cyclist *c) {
 void check_elimination(struct Cyclist *c) {
   if (c->checkpoint_ranking == total_cyclists)
     eliminate(c);
-  else
+  else {
     c->checkpoint_ranking = 0;
+    c->step++;
+  }
+    
 }
 
 void complete_lap(struct Cyclist *c) {

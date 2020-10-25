@@ -16,13 +16,27 @@ int new_lap(struct Cyclist *c) {
   return 0;
 }
 
+int lap_is_even(struct Cyclist *c) {
+  if (c->step % 2*d == 0) {
+    return 1;
+  }
+    
+  return 0;
+}
+
 /* function that each cyclist thread will execute */
 void *pedal(void * args) {
   struct Cyclist *c = (struct Cyclist*) args;
   // 60ms da corrida
   while (c->still_running) {
     if (new_lap(c)) {
-      cross_start_line(c);
+      if (lap_is_even(c)) {
+        cross_start_line(c);
+      } else {
+        c->current_lap++;
+        advance_step(c);
+      }
+      
     } else {
       advance_step(c);
     }
