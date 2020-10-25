@@ -11,7 +11,7 @@ int d = 0;
 /* check if cyclist completed a lap */
 int new_lap(struct Cyclist *c) {
   /* step % (d-1) == 0 ==> nova volta */
-  if (c->step != 0 && c->step % d == 0)
+  if (c->step > 0 && c->step % d == 0)
     return 1;
   return 0;
 }
@@ -21,14 +21,13 @@ void *pedal(void * args) {
   struct Cyclist *c = (struct Cyclist*) args;
   // 60ms da corrida
   while (c->still_running) {
-    if (new_lap) {
-      printf("a new lap ladies and gentlemen %d\n", c->step);
+    if (new_lap(c)) {
       cross_start_line(c);
+    } else {
+      advance_step(c);
     }
     // for now, only moves forward at 60km/h
     update_position(c, (c->position + 1) % d, c->lane);
-    c->step++;
-    advance_time(c);
     usleep(10000);
   }
   pthread_exit(NULL);

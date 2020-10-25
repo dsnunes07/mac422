@@ -28,7 +28,7 @@ EXTERN void cross_start_line(struct Cyclist *c);
 
 EXTERN void update_number_of_cyclists_active(int n);
 
-EXTERN void advance_time(struct Cyclist *c);
+EXTERN void advance_step(struct Cyclist *c);
 
 #undef race_IMPORT
 #undef EXTERN

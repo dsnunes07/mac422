@@ -11,7 +11,6 @@ int line_crosses = 0;
 
 pthread_mutex_t update_position_mutex;
 pthread_mutex_t lap_completed;
-pthread_barrier_t start_line;
 pthread_barrier_t step_barrier;
 
 
@@ -39,7 +38,6 @@ void configure_race(int d, int n) {
   put_cyclists_on_start_line(cyclists, n);
   pthread_mutex_init(&update_position_mutex, NULL);
   pthread_mutex_init(&lap_completed, NULL);
-  pthread_barrier_init(&start_line, NULL, n);
   pthread_barrier_init(&step_barrier, NULL, n);
   initialize_cyclists_threads(cyclists, n);
   for (int i = 0; i < n; i++) {
@@ -55,7 +53,7 @@ void update_position(struct Cyclist *c, int d, int lane) {
     c->position = d;
     c->lane = lane;
   } else {
-    printf("ciclista bloqueadon\n");
+    printf("ciclista bloqueado\n");
   }
   pthread_mutex_unlock(&update_position_mutex);
 }
@@ -66,18 +64,22 @@ void leave_race(struct Cyclist *c) {
 
 void update_number_of_cyclists(int n) {
   total_cyclists = n;
-  pthread_barrier_init(&start_line, NULL, n);
+  pthread_barrier_destroy(&step_barrier);
+  pthread_barrier_init(&step_barrier, NULL, n);
+}
+
+void eliminate(struct Cyclist *c) {
+  update_number_of_cyclists(total_cyclists - 1);
+  c->still_running = 0;
+  line_crosses = 0;
+  printf("%s eliminado na volta %d\n", c->name, c->current_lap);
 }
 
 void check_elimination(struct Cyclist *c) {
-  if (c->checkpoint_ranking == total_cyclists) {
-    c->still_running = 0;
-    update_number_of_cyclists(total_cyclists - 1);
-    printf("%s eliminado\n", c->name);
-    line_crosses = 0;
-  } else {
+  if (c->checkpoint_ranking == total_cyclists)
+    eliminate(c);
+  else
     c->checkpoint_ranking = 0;
-  }
 }
 
 void complete_lap(struct Cyclist *c) {
@@ -95,16 +97,18 @@ void winner(struct Cyclist *c) {
 
 void cross_start_line(struct Cyclist *c) {
   complete_lap(c);
-  pthread_barrier_wait(&start_line);
-  if (total_cyclists > 1) {
-    printf("checking if %s is eliminated\n", c->name);
-    check_elimination(c);
+  if (total_cyclists == 2) {
+    if(c->checkpoint_ranking < total_cyclists) {
+      winner(c);
+    } else {
+      eliminate(c);
+    }
   } else {
-    winner(c);
+    check_elimination(c);
   }
 }
 
-void advance_time(struct Cyclist *c) {
+void advance_step(struct Cyclist *c) {
   pthread_barrier_wait(&step_barrier);
-  printf("%s está com step = %d\n", c->name, c->step);
+  c->step++;
 }
