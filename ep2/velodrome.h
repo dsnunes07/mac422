@@ -21,6 +21,8 @@ EXTERN int get_velodrome_position(int d, int lane);
 
 EXTERN void set_velodrome_position(int d, int lane, int cyclist_id);
 
+EXTERN void free_velodrome_position(int d, int lane);
+
 EXTERN int velodrome_position_is_free(int d, int lane);
 
 EXTERN void print_velodrome_position(int d);
