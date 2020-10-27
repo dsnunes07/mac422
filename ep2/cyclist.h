@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include "lap_list.h"
 
 /* The purpose of the module1_IMPORT and the EXTERN macros is to allow the
 definition file to be included by client modules AND the implementation of the
@@ -24,14 +25,17 @@ struct Cyclist {
   char* name;
   int number;
   char* country;
-  int speed;
-  int position;
+  double speed;
+  double real_position;
+  int last_velodrome_position;
+  int velodrome_position;
   int lane;
   pthread_t thread;
   int still_running;
-  int current_lap;
   int step;
   int checkpoint_ranking;
+  int crossing_line;
+  struct Node* current_lap;
 };
 
 /* Global variables declarations here */

@@ -5,22 +5,32 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 
 int d = 0;
 
 /* check if cyclist completed a lap */
 int new_lap(struct Cyclist *c) {
-  /* step % (d-1) == 0 ==> nova volta */
-  if (c->step > 0 && c->step % d == 0)
-    return 1;
-  return 0;
-}
-
-int lap_is_even(struct Cyclist *c) {
-  if (c->step % 2*d == 0) {
+  if (c->step > 0 && c->crossing_line == 0 && c->last_velodrome_position > c->velodrome_position) {
+    c->crossing_line = 1;
     return 1;
   }
   return 0;
+}
+
+void update_speed(struct Cyclist *c) {
+  /*  0.5: 30km/h 
+      1: 60 km/h
+      1.5: 90km/h
+  */
+ if (c->speed == 0.5) {
+   if (flip_coin(80))
+    c->speed = 1;
+ } else if (c->speed == 1) {
+   if (flip_coin(40))
+    c->speed = 0.5;
+ }
+ printf("%s velocidade: %f\n==================\n", c->name, c->speed);
 }
 
 /* function that each cyclist thread will execute */
@@ -29,19 +39,11 @@ void *pedal(void * args) {
   // 60ms da corrida
   while (c->still_running) {
     if (new_lap(c)) {
-      if (lap_is_even(c)) {
-        cross_start_line(c);
-      } else {
-        c->current_lap++;
-        advance_step(c);
-      }
-      
-    } else {
-      advance_step(c);
+      complete_lap(c);
+      update_speed(c);
     }
-    // for now, only moves forward at 60km/h
-    update_position(c, (c->position + 1) % d, c->lane);
-    usleep(10000);
+    update_position(c);
+    advance_step(c);
   }
   pthread_exit(NULL);
 }
@@ -70,20 +72,22 @@ struct Cyclist* create_cyclists(int n) {
     cyclists[i].id = i;
     cyclists[i].number = draw_cyclist_number(i, n);
     cyclists[i].country = "Brasil";
-    cyclists[i].speed = 0;
-    cyclists[i].position = 0;
+    cyclists[i].speed = 1.0;
+    cyclists[i].real_position = 0.0;
+    cyclists[i].velodrome_position = 0;
+    cyclists[i].last_velodrome_position = 0;
     cyclists[i].lane = 0;
-    cyclists[i].current_lap = 0;
     cyclists[i].still_running = 1;
     cyclists[i].step = 0;
     cyclists[i].checkpoint_ranking = 0;
+    cyclists[i].crossing_line = 0;
   }
   return cyclists;
 }
 
 /* print all members of cyclist struct in a single line, without labels */
 void print_cyclist_data(struct Cyclist *c) {
-  printf("%d %s  %d  %s  %d  %d  %d\n", c->id, c->name, c->number, c->country, c->speed, c->position, c->lane);
+  printf("%d  %s  %d  %s  %f  %f  %d\n", c->id, c->name, c->number, c->country, c->speed, c->real_position, c->lane);
 }
 
 void set_track_length(int length) {

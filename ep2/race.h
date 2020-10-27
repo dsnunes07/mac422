@@ -20,7 +20,7 @@ EXTERN void request_updates(struct Cyclist *cyclist);
 
 EXTERN int eliminated(struct Cyclist *cyclist);
 
-EXTERN void update_position(struct Cyclist *c, int d, int lane);
+EXTERN void update_position(struct Cyclist *c);
 
 EXTERN void leave_race(struct Cyclist *c);
 
@@ -29,6 +29,8 @@ EXTERN void cross_start_line(struct Cyclist *c);
 EXTERN void update_number_of_cyclists_active(int n);
 
 EXTERN void advance_step(struct Cyclist *c);
+
+EXTERN void complete_lap(struct Cyclist *c);
 
 #undef race_IMPORT
 #undef EXTERN
