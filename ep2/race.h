@@ -14,23 +14,31 @@
 
 EXTERN void configure_race(int d, int n);
 
-EXTERN void start_race(void);
-
-EXTERN void request_updates(struct Cyclist *cyclist);
-
-EXTERN int eliminated(struct Cyclist *cyclist);
-
-EXTERN void update_position(struct Cyclist *c);
-
-EXTERN void leave_race(struct Cyclist *c);
-
-EXTERN void cross_start_line(struct Cyclist *c);
-
-EXTERN void update_number_of_cyclists_active(int n);
-
-EXTERN void advance_step(struct Cyclist *c);
+EXTERN void reach_step_barrier(struct Cyclist *c);
 
 EXTERN void complete_lap(struct Cyclist *c);
+
+EXTERN void check_new_lap(struct Cyclist *c);
+
+EXTERN void check_eliminations();
+
+EXTERN void check_winner();
+
+EXTERN void update_step_barrier();
+
+EXTERN void analyze_cyclists();
+
+EXTERN int get_total_cyclists_running(void);
+
+EXTERN void wait_for_referee();
+
+EXTERN void notify_referee();
+
+EXTERN void notify_cyclists();
+
+EXTERN void wait_cyclists_advance();
+
+EXTERN void wait_for_cyclists_to_finish();
 
 #undef race_IMPORT
 #undef EXTERN

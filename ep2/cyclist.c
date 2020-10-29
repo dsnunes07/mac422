@@ -2,21 +2,14 @@
 #include "cyclist.h"
 #include "utils.h"
 #include "race.h"
+#include "velodrome.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
 
 int d = 0;
-
-/* check if cyclist completed a lap */
-int new_lap(struct Cyclist *c) {
-  if (c->step > 0 && c->crossing_line == 0 && c->last_velodrome_position > c->velodrome_position) {
-    c->crossing_line = 1;
-    return 1;
-  }
-  return 0;
-}
+pthread_mutex_t update_position_mutex;
 
 void update_speed(struct Cyclist *c) {
   /*  0.5: 30km/h 
@@ -30,27 +23,60 @@ void update_speed(struct Cyclist *c) {
    if (flip_coin(40))
     c->speed = 0.5;
  }
- printf("%s velocidade: %f\n==================\n", c->name, c->speed);
+ printf("[%d] %s vai começar a pedalar a %f\n", c->step, c->name, c->speed);
+}
+
+void move_forward(struct Cyclist *c) {
+  c->real_position += c->speed;
+  if (ceil(c->real_position) == c->real_position) {
+    c->last_velodrome_position = c->velodrome_position;
+    c->velodrome_position = (int) c->real_position;
+    c->velodrome_position = c->velodrome_position % d;
+    free_velodrome_position(c->last_velodrome_position, c->lane);
+    set_velodrome_position(c->velodrome_position, c->lane, c->id);
+    c->crossing_line = 0;
+  }
+}
+
+int completing_new_lap(struct Cyclist *c) {
+  if (c->step > 0 && c->crossing_line == 0 && c->last_velodrome_position > c->velodrome_position)
+    return 1;
+  return 0;
+}
+
+void update_position(struct Cyclist *c) {
+  pthread_mutex_lock(&update_position_mutex);
+  move_forward(c);
+  pthread_mutex_unlock(&update_position_mutex);
 }
 
 /* function that each cyclist thread will execute */
 void *pedal(void * args) {
   struct Cyclist *c = (struct Cyclist*) args;
-  // 60ms da corrida
   while (c->still_running) {
-    if (new_lap(c)) {
-      complete_lap(c);
-      update_speed(c);
-    }
+    /* passos únicos dos ciclistas */
     update_position(c);
-    advance_step(c);
+    check_new_lap(c);
+    // check_if_broken(c);
+    // espera todo mundo acabar (barreira)
+    wait_cyclists_advance();
+    // notifica juíza que é hora de verificar a corrida
+    notify_referee();
+    // espera juíza liberar
+    wait_for_referee(c);
+    // avança um passo no registro interno
+    c->step++;
   }
-  pthread_exit(NULL);
+  printf("%s dá adeus a competição!\n", c->name);
+  // pthread_exit(NULL);
 }
 
 void initialize_cyclists_threads(struct Cyclist *cyclists, int n) {
-  for (int i=0; i < n; i++)
+  pthread_mutex_init(&update_position_mutex, NULL);
+  for (int i = 0; i < n; i++)
     pthread_create(&(cyclists[i].thread), NULL, pedal, &(cyclists[i]));
+  for (int i = 0; i < n; i++)
+    pthread_join(cyclists[i].thread, NULL);
 }
 
 /* name i-th cyclist as ciclista_i. For now, cyclist name is "ciclista_(id)" */
@@ -78,9 +104,12 @@ struct Cyclist* create_cyclists(int n) {
     cyclists[i].last_velodrome_position = 0;
     cyclists[i].lane = 0;
     cyclists[i].still_running = 1;
-    cyclists[i].step = 0;
+    cyclists[i].must_stop = 0;
+    cyclists[i].step = 1;
     cyclists[i].checkpoint_ranking = 0;
     cyclists[i].crossing_line = 0;
+    pthread_mutex_t cyclist_lock = PTHREAD_MUTEX_INITIALIZER;
+    cyclists[i].mutex = cyclist_lock;
   }
   return cyclists;
 }
