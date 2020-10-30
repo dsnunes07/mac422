@@ -23,7 +23,9 @@ void *referee_worker(void *args) {
   referee->race_is_on = 1;
   while (referee->race_is_on) {
     // espera ciclistas avisarem (cond_wait)
+    printf("%d juiz esperando\n", referee->step);
     wait_for_cyclists_to_finish();
+    printf("%d juiz liberado\n", referee->step);
     // arbitra a corrida
     check_eliminations();
     check_winner();

@@ -165,15 +165,16 @@ void wait_for_referee(struct Cyclist *c) {
 void notify_referee() {
   pthread_mutex_lock(&wake_referee);
   pthread_cond_signal(&cyclists_finished);
+  usleep(10000);
   pthread_mutex_unlock(&wake_referee);
 }
 
 // referee will keep waiting to be unlocked by notify_referee() function
 void wait_for_cyclists_to_finish() {
   pthread_mutex_lock(&referee_mutex);
+  usleep(100);
   pthread_cond_wait(&cyclists_finished, &referee_mutex);
   pthread_mutex_unlock(&referee_mutex);
-
 }
 
 // referee will send a signal to every cyclist waiting at
@@ -210,7 +211,6 @@ void check_eliminations() {
       printf("PARE E ELIMINE %s deve ser eliminado\n", cyclists[i].name);
       total_cyclists_running--;
       cyclists[i].still_running = 0;
-      pthread_cancel(cyclists[i].thread);
     }
   }
 }
@@ -231,4 +231,5 @@ void check_winner() {
 void update_step_barrier() {
   pthread_barrier_destroy(&step_barrier);
   pthread_barrier_init(&step_barrier, NULL, total_cyclists_running);
+  printf("barreira atualizada: %d\n", total_cyclists_running);
 }

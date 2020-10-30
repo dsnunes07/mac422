@@ -59,14 +59,17 @@ void *pedal(void * args) {
     // check_if_broken(c);
     // espera todo mundo acabar (barreira)
     wait_cyclists_advance();
+    printf("%d %s avançou\n", c->step, c->name);
     usleep(500);
     // notifica juíza que é hora de verificar a corrida
     notify_referee();
     // espera juíza liberar
     wait_for_referee(c);
+    wait_cyclists_advance();
     //printf("[%d] juiza chegou, %s pode continuar\n", c->step, c->name);
     // avança um passo no registro interno
     c->step++;
+    printf("%s %d\n", c->name, c->step);
   }
   printf("%s dá adeus a competição!\n", c->name);
   // pthread_exit(NULL);
