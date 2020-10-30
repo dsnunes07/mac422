@@ -30,6 +30,8 @@ void *referee_worker(void *args) {
     update_step_barrier();
     // libera os ciclistas
     notify_cyclists();
+    referee->step++;
+    printf("%d\n", referee->step);
   }
 }
 

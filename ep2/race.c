@@ -17,6 +17,7 @@ struct Node* laps;
 int total_cyclists_running;
 int total_positions;
 int referee_waiting = 1;
+int cyclists_released_current_step;
 
 // mutex for update cyclists current lap
 pthread_mutex_t lap_completed = PTHREAD_MUTEX_INITIALIZER;
@@ -84,7 +85,7 @@ void check_elimination(struct Cyclist *c) {
   struct Node *current_lap = get_lap_data(c->current_lap);
   printf("[%d] verificando eliminação do ciclista %s volta %d %d\n", c->step, c->name, c->current_lap, current_lap->line_crosses);
   if (current_lap->line_crosses == total_cyclists_running) {
-    printf("%s deve ser eliminado\n", c->name);
+    printf("opa %s deve ser eliminado\n", c->name);
     c->must_stop = 1;
   }
 }
@@ -131,9 +132,6 @@ void check_new_lap(struct Cyclist *c) {
 
 int cyclist_state(struct Cyclist *c) {
   if (c->still_running && c->must_stop) {
-    printf("removendo ciclista %s\n", c->name);
-    total_cyclists_running--;
-    c->still_running = 0;
     return ELIMINATED;
   }
   return CONTINUE;
@@ -154,11 +152,11 @@ void initialize_race_barriers() {
 // for a signal that he or she can continue the race to
 // the next step
 void wait_for_referee(struct Cyclist *c) {
-  pthread_mutex_lock(&(c->mutex));
-  printf("[%d] %s esperando juiza\n", c->step, c->name);
+  pthread_mutex_lock(&(c->mutex)); 
+  // printf("[%d] %s estou esperando o juiz...\n", c->step, c->name);
   pthread_cond_wait(&referee_finished, &(c->mutex));
   pthread_mutex_unlock(&(c->mutex));
-  printf("[%d] juiza chegou, %s pode continuar\n", c->step, c->name);
+  cyclists_released_current_step++;
 }
 
 // a single cyclist, the first that locks the mutex,
@@ -166,10 +164,7 @@ void wait_for_referee(struct Cyclist *c) {
 // iteration
 void notify_referee() {
   pthread_mutex_lock(&wake_referee);
-  if (referee_waiting) {
-    pthread_cond_signal(&cyclists_finished);
-    referee_waiting = 0;
-  }
+  pthread_cond_signal(&cyclists_finished);
   pthread_mutex_unlock(&wake_referee);
 }
 
@@ -178,13 +173,18 @@ void wait_for_cyclists_to_finish() {
   pthread_mutex_lock(&referee_mutex);
   pthread_cond_wait(&cyclists_finished, &referee_mutex);
   pthread_mutex_unlock(&referee_mutex);
+
 }
 
 // referee will send a signal to every cyclist waiting at
 // referee_finished condition
 void notify_cyclists() {
   pthread_mutex_lock(&referee_mutex);
-  pthread_cond_broadcast(&referee_finished);
+  while (cyclists_released_current_step < total_cyclists_running) {
+    pthread_cond_broadcast(&referee_finished);
+  }
+    
+  cyclists_released_current_step = 0;
   pthread_mutex_unlock(&referee_mutex);
 }
 
@@ -207,8 +207,10 @@ void check_eliminations() {
   for (int i = 0; i < cyclists_size; i++) {
     int state = cyclist_state(&(cyclists[i]));
     if (state == ELIMINATED) {
+      printf("PARE E ELIMINE %s deve ser eliminado\n", cyclists[i].name);
       total_cyclists_running--;
       cyclists[i].still_running = 0;
+      pthread_cancel(cyclists[i].thread);
     }
   }
 }

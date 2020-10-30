@@ -23,7 +23,6 @@ void update_speed(struct Cyclist *c) {
    if (flip_coin(40))
     c->speed = 0.5;
  }
- printf("[%d] %s vai começar a pedalar a %f\n", c->step, c->name, c->speed);
 }
 
 void move_forward(struct Cyclist *c) {
@@ -60,10 +59,12 @@ void *pedal(void * args) {
     // check_if_broken(c);
     // espera todo mundo acabar (barreira)
     wait_cyclists_advance();
+    usleep(500);
     // notifica juíza que é hora de verificar a corrida
     notify_referee();
     // espera juíza liberar
     wait_for_referee(c);
+    //printf("[%d] juiza chegou, %s pode continuar\n", c->step, c->name);
     // avança um passo no registro interno
     c->step++;
   }
