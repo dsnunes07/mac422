@@ -173,6 +173,7 @@ void notify_referee() {
 void wait_for_cyclists_to_finish() {
   pthread_mutex_lock(&referee_mutex);
   usleep(100);
+  pthread_cond_signal(&referee_finished);
   pthread_cond_wait(&cyclists_finished, &referee_mutex);
   pthread_mutex_unlock(&referee_mutex);
 }
@@ -215,14 +216,15 @@ void check_eliminations() {
   }
 }
 
-void check_winner() {
+int check_winner() {
   if (total_cyclists_running > 1)
-    return;
+    return 1;
   else {
     for (int i = 0; i < cyclists_size; i++) {
       struct Cyclist *c = &(cyclists[i]);
       if (c->still_running) {
         printf("PARABÉNS! %s é o vencedor!\n", c->name);
+        return 0;
       }
     }
   }

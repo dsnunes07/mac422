@@ -65,13 +65,15 @@ void *pedal(void * args) {
     notify_referee();
     // espera juíza liberar
     wait_for_referee(c);
-    wait_cyclists_advance();
     //printf("[%d] juiza chegou, %s pode continuar\n", c->step, c->name);
     // avança um passo no registro interno
-    c->step++;
     printf("%s %d\n", c->name, c->step);
+    if (c->must_stop)
+      printf("%s: sei que devo sair fora\n", c->name);
+    c->step++;
   }
   printf("%s dá adeus a competição!\n", c->name);
+  wait_cyclists_advance();
   // pthread_exit(NULL);
 }
 

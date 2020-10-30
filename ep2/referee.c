@@ -28,13 +28,15 @@ void *referee_worker(void *args) {
     printf("%d juiz liberado\n", referee->step);
     // arbitra a corrida
     check_eliminations();
-    check_winner();
+    referee->race_is_on = check_winner();
+    printf("race is on? %d\n", referee->race_is_on);
     update_step_barrier();
     // libera os ciclistas
     notify_cyclists();
     referee->step++;
     printf("%d\n", referee->step);
   }
+  printf("cabou-se\n");
 }
 
 void initialize_referee(int d, int n) {

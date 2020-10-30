@@ -22,7 +22,7 @@ EXTERN void check_new_lap(struct Cyclist *c);
 
 EXTERN void check_eliminations();
 
-EXTERN void check_winner();
+EXTERN int check_winner();
 
 EXTERN void update_step_barrier();
 
