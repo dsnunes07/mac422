@@ -18,6 +18,7 @@ int total_cyclists_running;
 int total_positions;
 int referee_waiting = 1;
 int cyclists_released_current_step;
+int cyclists_terminated = 0;
 
 // mutex for update cyclists current lap
 pthread_mutex_t lap_completed = PTHREAD_MUTEX_INITIALIZER;
@@ -32,6 +33,14 @@ pthread_cond_t cyclists_finished = PTHREAD_COND_INITIALIZER;
 
 int get_total_cyclists_running() {
   return total_cyclists_running;
+}
+
+void terminate_cyclist() {
+  cyclists_terminated++;
+}
+
+int get_terminated_cyclists() {
+  return cyclists_terminated;
 }
 /* Place cylists randomly at start line and return their positions */
 void put_cyclists_on_start_line(struct Cyclist *cyclists, int n) {
@@ -224,6 +233,7 @@ int check_winner() {
       struct Cyclist *c = &(cyclists[i]);
       if (c->still_running) {
         printf("PARABÉNS! %s é o vencedor!\n", c->name);
+        c->still_running = 0;
         return 0;
       }
     }

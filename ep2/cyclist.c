@@ -71,9 +71,11 @@ void *pedal(void * args) {
     if (c->must_stop)
       printf("%s: sei que devo sair fora\n", c->name);
     c->step++;
+    printf("sairam: %d\n", get_terminated_cyclists());
   }
   printf("%s dá adeus a competição!\n", c->name);
   wait_cyclists_advance();
+  terminate_cyclist();
   // pthread_exit(NULL);
 }
 

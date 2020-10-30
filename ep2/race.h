@@ -40,6 +40,9 @@ EXTERN void wait_cyclists_advance();
 
 EXTERN void wait_for_cyclists_to_finish();
 
+EXTERN void terminate_cyclist();
+
+EXTERN int get_terminated_cyclists();
 #undef race_IMPORT
 #undef EXTERN
 #endif
