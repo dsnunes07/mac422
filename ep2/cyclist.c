@@ -59,7 +59,7 @@ void *pedal(void * args) {
     // check_if_broken(c);
     // espera todo mundo acabar (barreira)
     wait_cyclists_advance();
-    printf("%d %s avançou\n", c->step, c->name);
+    // printf("%d %s avançou\n", c->step, c->name);
     usleep(500);
     // notifica juíza que é hora de verificar a corrida
     notify_referee();
@@ -68,10 +68,10 @@ void *pedal(void * args) {
     //printf("[%d] juiza chegou, %s pode continuar\n", c->step, c->name);
     // avança um passo no registro interno
     printf("%s %d\n", c->name, c->step);
-    if (c->must_stop)
-      printf("%s: sei que devo sair fora\n", c->name);
+    /* if (c->must_stop)
+      printf("%s: sei que devo sair fora\n", c->name); */
     c->step++;
-    printf("sairam: %d\n", get_terminated_cyclists());
+    printf("eliminados: %d\n", get_terminated_cyclists());
   }
   printf("%s dá adeus a competição!\n", c->name);
   wait_cyclists_advance();

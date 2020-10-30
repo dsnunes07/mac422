@@ -23,20 +23,20 @@ void *referee_worker(void *args) {
   referee->race_is_on = 1;
   while (referee->race_is_on) {
     // espera ciclistas avisarem (cond_wait)
-    printf("%d juiz esperando\n", referee->step);
+    // printf("%d juiz esperando\n", referee->step);
     wait_for_cyclists_to_finish();
-    printf("%d juiz liberado\n", referee->step);
+    // printf("%d juiz liberado\n", referee->step);
     // arbitra a corrida
     check_eliminations();
     referee->race_is_on = check_winner();
-    printf("race is on? %d\n", referee->race_is_on);
+    // printf("race is on? %d\n", referee->race_is_on);
     update_step_barrier();
     // libera os ciclistas
     notify_cyclists();
     referee->step++;
-    printf("%d\n", referee->step);
+    // printf("%d\n", referee->step);
   }
-  printf("cabou-se\n");
+  printf("Fim da corrida.\n");
 }
 
 void initialize_referee(int d, int n) {

@@ -174,7 +174,8 @@ void wait_for_referee(struct Cyclist *c) {
 void notify_referee() {
   pthread_mutex_lock(&wake_referee);
   pthread_cond_signal(&cyclists_finished);
-  usleep(10000);
+  // isso aqui funciona mas faz a corrida demorar horrores
+  /* usleep(100000); */
   pthread_mutex_unlock(&wake_referee);
 }
 
@@ -243,5 +244,4 @@ int check_winner() {
 void update_step_barrier() {
   pthread_barrier_destroy(&step_barrier);
   pthread_barrier_init(&step_barrier, NULL, total_cyclists_running);
-  printf("barreira atualizada: %d\n", total_cyclists_running);
 }
