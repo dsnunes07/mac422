@@ -24,21 +24,15 @@ void *referee_worker(void *args) {
   referee->race_is_on = 1;
   while (referee->race_is_on) {
     lock_cyclists();
-    //referee_sleep();
     check_eliminations();
     referee->race_is_on = check_winner();
-    // printf("race is on? %d\n", referee->race_is_on);
-    
     if (get_total_cyclists_running() < referee_cyclists_running) {
       update_step_barrier();
       printf("barreira atualizada para %d\n", get_total_cyclists_running());
       referee_cyclists_running = get_total_cyclists_running();
     }
-    printf("[%d] juiz\n", referee->step);
     // avança a referencia de tempo local
     referee->step++;
-    // usleep(100);
-    //cyclists_wake_up();
     unlock_cyclists();
   }
   printf("Fim da corrida.\n");

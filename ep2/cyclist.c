@@ -60,23 +60,19 @@ void *pedal(void * args) {
     pthread_mutex_lock(&(c->mutex));
     update_position(c);
     check_new_lap(c);
-    // check_if_broken(c);
-    // espera todo mundo acabar
+    check_if_broken(c);
+    // espere os outros ciclistas chegarem nesse passo
     wait_cyclists_advance();
-    // printf("%s avançou\n", c->name);
-    printf("[%d] %s %d %d %d\n", c->step, c->name, c->current_lap, get_total_cyclists_running(), c->must_stop);
     // avança um passo no tempo local
     c->step++;
     //referee_wake_up();
     pthread_mutex_unlock(&(c->mutex));
     c->run = 0;
-    //cyclists_sleep();
   }
   c->run = 0;
   pthread_mutex_unlock(&(c->mutex));
   printf("%s dá adeus a competição!\n", c->name);
-  terminate_cyclist();
-  // pthread_exit(NULL);
+  pthread_exit(NULL);
 }
 
 void initialize_cyclists_threads(struct Cyclist *cyclists, int n) {
