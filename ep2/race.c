@@ -17,6 +17,9 @@ struct Node* laps;
 int total_cyclists_running;
 int total_positions;
 int cyclists_terminated = 0;
+int cyclists_finished = 0;
+int cyclists_released = 0;
+int total_cyclists_participating = 0;
 
 // mutex for update cyclists current lap
 pthread_mutex_t lap_completed = PTHREAD_MUTEX_INITIALIZER;
@@ -74,9 +77,6 @@ int eliminatory_lap(struct Cyclist *c) {
   return 0;
 }
 
-int cyclists_finished = 0;
-int cyclists_released = 0;
-
 void referee_sleep() {
   pthread_mutex_lock(&referee_mutex);
   while (cyclists_finished < total_cyclists_running) {
@@ -91,6 +91,25 @@ void referee_wake_up() {
   cyclists_finished++;
   pthread_cond_signal(&cyclist_finished);
   pthread_mutex_unlock(&referee_mutex);
+}
+
+void cyclists_sleep() {
+  pthread_mutex_lock(&referee_mutex);
+  // printf("ciclista esperando\n");
+  pthread_cond_wait(&referee_finished, &referee_mutex);
+  cyclists_released++;
+  pthread_mutex_unlock(&referee_mutex);
+  // printf("ciclista liberado\n");
+}
+
+void cyclists_wake_up() {
+  // pthread_mutex_lock(&referee_mutex);
+  printf("tentando acordar ciclistas...\n");
+  while (cyclists_released < total_cyclists_running) {
+    pthread_cond_broadcast(&referee_finished);
+  }
+  cyclists_released = 0;
+  // pthread_mutex_unlock(&referee_mutex);
 }
 
 
@@ -114,6 +133,23 @@ void check_elimination(struct Cyclist *c) {
     c->must_stop = 1;
   }
 }
+
+void lock_cyclists() {
+  for (int i = 0; i < total_cyclists_participating; i++) {
+    if (cyclists[i].still_running) {
+      while (cyclists[i].run);
+      pthread_mutex_lock(&(cyclists[i].mutex));
+    }
+  }
+}
+
+void unlock_cyclists() {
+  for (int i = 0; i < total_cyclists_participating; i++) {
+    pthread_mutex_unlock(&(cyclists[i].mutex));
+    cyclists[i].run = 1;
+  }
+}
+
 
 int get_total_line_crosses(int lap_num) {
   struct Node* lap_list = laps;
@@ -166,44 +202,20 @@ int cyclist_state(struct Cyclist *c) {
 // for each other before wake up the referee to update
 // the race
 void wait_cyclists_advance() {
+  // printf("esperando avançar...\n");
   pthread_barrier_wait(&step_barrier);
+  // printf("avançou...\n");
 }
 
 void initialize_race_barriers() {
   pthread_barrier_init(&step_barrier, NULL, total_cyclists_running);
 }
 
-// referee will keep waiting to be unlocked by notify_referee() function
-void wait_for_cyclists() {
-  pthread_mutex_lock(&referee_mutex);
-  pthread_cond_broadcast(&referee_finished);
-  pthread_mutex_unlock(&referee_mutex);
-}
-
-// each cyclist will wait inside its own mutex
-// for a signal that he or she can continue the race to
-// the next step
-/* void wait_for_referee(struct Cyclist *c) {
-  cyclists_that_finished++;
-  pthread_mutex_lock(&referee_mutex);
-  while (!referee_sleeping) {
-    printf("esperando o juiz acabar...\n");
-    pthread_cond_signal(&cyclists_finished);
-    pthread_cond_wait(&referee_finished, &referee_mutex);
-    referee_sleeping = 1;
-    usleep(1000000);
-  }
-  printf("juiz acabou... %d\n", referee_sleeping);
-  pthread_mutex_unlock(&referee_mutex);
-  cyclists_that_finished--;
-  // printf("%s liberado\n", c->name);
-} */
-
-
 int cyclists_size;
 void configure_race(int d, int n) {
   total_positions = d;
   total_cyclists_running = n;
+  total_cyclists_participating = n;
   cyclists_size = n;
   initialize_race_barriers();
   create_velodrome(d);

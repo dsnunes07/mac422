@@ -53,19 +53,28 @@ void update_position(struct Cyclist *c) {
 void *pedal(void * args) {
   struct Cyclist *c = (struct Cyclist*) args;
   while (c->still_running) {
+    while (!(c->run));
+    if (c->must_stop) {
+      break;
+    }
+    pthread_mutex_lock(&(c->mutex));
+    update_position(c);
     check_new_lap(c);
     // check_if_broken(c);
     // espera todo mundo acabar
     wait_cyclists_advance();
     // printf("%s avançou\n", c->name);
-    printf("[%d] %s\n", c->step, c->name);
+    printf("[%d] %s %d %d %d\n", c->step, c->name, c->current_lap, get_total_cyclists_running(), c->must_stop);
     // avança um passo no tempo local
     c->step++;
-    referee_wake_up();
-    usleep(2000000);
+    //referee_wake_up();
+    pthread_mutex_unlock(&(c->mutex));
+    c->run = 0;
+    //cyclists_sleep();
   }
+  c->run = 0;
+  pthread_mutex_unlock(&(c->mutex));
   printf("%s dá adeus a competição!\n", c->name);
-  wait_cyclists_advance();
   terminate_cyclist();
   // pthread_exit(NULL);
 }
@@ -109,6 +118,7 @@ struct Cyclist* create_cyclists(int n) {
     cyclists[i].crossing_line = 0;
     pthread_mutex_t cyclist_lock = PTHREAD_MUTEX_INITIALIZER;
     cyclists[i].mutex = cyclist_lock;
+    cyclists[i].run = 1;
   }
   return cyclists;
 }

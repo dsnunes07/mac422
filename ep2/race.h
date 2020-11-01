@@ -47,7 +47,9 @@ EXTERN void notify_cyclists();
 
 EXTERN void wait_cyclists_advance();
 
+EXTERN void lock_cyclists();
 
+EXTERN void unlock_cyclists();
 
 EXTERN void terminate_cyclist();
 
