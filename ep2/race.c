@@ -52,6 +52,7 @@ void put_cyclists_on_start_line(struct Cyclist *cyclists, int n) {
 void assign_starting_laps() {
   int lap_num = 1;
   laps = create_new_lap(lap_num);
+  laps->cyclists_on_lap = total_cyclists_participating;
   global_current_lap = laps;
   for (int i=0; i < total_cyclists_running; i++)
     cyclists[i].current_lap = 1;
@@ -79,7 +80,7 @@ struct Node *get_lap_data(int lap_num) {
 
 void check_elimination(struct Cyclist *c) {
   struct Node *current_lap = get_lap_data(c->current_lap);
-  if (current_lap->line_crosses == total_cyclists_running) {
+  if (current_lap->line_crosses == current_lap->cyclists_on_lap) {
     printf("%s ficou em último na volta %d e será eliminado!\n", c->name, c->current_lap);
     c->must_stop = 1;
   }
@@ -136,23 +137,25 @@ void check_new_lap(struct Cyclist *c) {
     // printf("[%d] %s completou a volta %d\n", c->step, c->name, c->current_lap);
     update_current_lap_crosses(c);
     struct Node* current_lap = get_lap_data(c->current_lap);
-    printf("[volta %d] %s %d %d\n", c->current_lap, c->name, current_lap->line_crosses, total_cyclists_running);
+    printf("[volta %d] %s %d %d\n", c->current_lap, c->name, current_lap->line_crosses, current_lap->cyclists_on_lap);
     add_cyclist_lap_data_into_ranking(c);
-    if (current_lap->line_crosses == total_cyclists_running) {
+    if (current_lap->line_crosses == current_lap->cyclists_on_lap) {
       print_lap_ranking(get_lap_data(c->current_lap)->lap_ranking, c->current_lap);
     }
     if (eliminatory_lap(c))
       check_elimination(c);
+    check_if_broken(c);
+    if (c->must_stop) {
+      pthread_mutex_unlock(&lap_completed);
+      return;
+    }
     if (current_lap->next == NULL) {
       int next_lap_num = current_lap->lap_num + 1;
       struct Node *new_lap = create_new_lap(next_lap_num);
       global_current_lap->next = new_lap;
       global_current_lap = new_lap;
-    }
-    check_if_broken(c);
-    if (c->must_stop) {
-      pthread_mutex_unlock(&lap_completed);
-      return;
+    } else {
+      current_lap->next->cyclists_on_lap++;
     }
     c->current_lap++;
     update_speed(c);

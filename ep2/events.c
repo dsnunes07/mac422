@@ -8,7 +8,8 @@ void print_lap_ranking(struct Ranking *r, int lap) {
   printf("--------------------------------------\nRanking final para volta %d\n--------------------------------------\n", lap);
   int classification = 1;
   while (r != NULL) {
-    printf("%-3d. %20s #%-3d %-30s\n", classification++, r->cyclist->name, r->cyclist->number, r->cyclist->country);
+    if (!(r->cyclist->broke))
+      printf("%-3d. %20s #%-3d %-30s\n", classification++, r->cyclist->name, r->cyclist->number, r->cyclist->country);
     r = r->next;
   }
   pthread_mutex_unlock(&print_output);

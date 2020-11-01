@@ -11,6 +11,7 @@
 
 struct Node {
   int lap_num;
+  int cyclists_on_lap;
   int line_crosses;
   struct Ranking *lap_ranking;
   struct Node* next;
