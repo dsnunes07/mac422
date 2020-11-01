@@ -53,25 +53,16 @@ void update_position(struct Cyclist *c) {
 void *pedal(void * args) {
   struct Cyclist *c = (struct Cyclist*) args;
   while (c->still_running) {
-    /* passos únicos dos ciclistas */
-    update_position(c);
     check_new_lap(c);
     // check_if_broken(c);
-    // espera todo mundo acabar (barreira)
+    // espera todo mundo acabar
     wait_cyclists_advance();
-    // printf("%d %s avançou\n", c->step, c->name);
-    usleep(500);
-    // notifica juíza que é hora de verificar a corrida
-    notify_referee();
-    // espera juíza liberar
-    wait_for_referee(c);
-    //printf("[%d] juiza chegou, %s pode continuar\n", c->step, c->name);
-    // avança um passo no registro interno
-    printf("%s %d\n", c->name, c->step);
-    /* if (c->must_stop)
-      printf("%s: sei que devo sair fora\n", c->name); */
+    // printf("%s avançou\n", c->name);
+    printf("[%d] %s\n", c->step, c->name);
+    // avança um passo no tempo local
     c->step++;
-    printf("eliminados: %d\n", get_terminated_cyclists());
+    referee_wake_up();
+    usleep(2000000);
   }
   printf("%s dá adeus a competição!\n", c->name);
   wait_cyclists_advance();

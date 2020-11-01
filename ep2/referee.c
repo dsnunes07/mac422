@@ -20,21 +20,23 @@ void *referee_worker(void *args) {
   int n = race_data->n;
   struct Referee *referee = malloc(sizeof(struct Referee*));
   referee->step = 1;
+  int referee_cyclists_running = get_total_cyclists_running();
   referee->race_is_on = 1;
   while (referee->race_is_on) {
-    // espera ciclistas avisarem (cond_wait)
-    // printf("%d juiz esperando\n", referee->step);
-    wait_for_cyclists_to_finish();
-    // printf("%d juiz liberado\n", referee->step);
+    referee_sleep();
     // arbitra a corrida
     check_eliminations();
     referee->race_is_on = check_winner();
     // printf("race is on? %d\n", referee->race_is_on);
-    update_step_barrier();
-    // libera os ciclistas
-    notify_cyclists();
+    
+    if (get_total_cyclists_running() < referee_cyclists_running) {
+      update_step_barrier();
+      referee_cyclists_running = get_total_cyclists_running();
+    }
+    printf("[%d] juiz\n", referee->step);
+    // avança a referencia de tempo local
     referee->step++;
-    // printf("%d\n", referee->step);
+    usleep(1000000);
   }
   printf("Fim da corrida.\n");
 }

@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "cyclist.h"
+#include <pthread.h>
 
 #ifdef race_IMPORT
   #define EXTERN
@@ -30,7 +31,15 @@ EXTERN void analyze_cyclists();
 
 EXTERN int get_total_cyclists_running(void);
 
-EXTERN void wait_for_referee();
+EXTERN void referee_sleep();
+
+EXTERN void cyclists_sleep();
+
+EXTERN void referee_wake_up();
+
+EXTERN void cyclists_wake_up();
+
+EXTERN void wait_for_cyclists();
 
 EXTERN void notify_referee();
 
@@ -38,11 +47,14 @@ EXTERN void notify_cyclists();
 
 EXTERN void wait_cyclists_advance();
 
-EXTERN void wait_for_cyclists_to_finish();
+
 
 EXTERN void terminate_cyclist();
 
 EXTERN int get_terminated_cyclists();
+
+EXTERN void notify_other_cyclists_can_continue();
+
 #undef race_IMPORT
 #undef EXTERN
 #endif
