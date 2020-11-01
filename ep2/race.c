@@ -70,6 +70,7 @@ struct Node *get_lap_data(int lap_num) {
   struct Node *lap_list = laps;
   while(lap_list != NULL) {
     if (lap_list->lap_num == lap_num) {
+      // printf("volta %d total ciclistas: %d\n", lap_num, lap_list->total_cyclists);
       return lap_list;
     }
     lap_list = lap_list->next;
@@ -135,6 +136,7 @@ void check_new_lap(struct Cyclist *c) {
     // printf("[%d] %s completou a volta %d\n", c->step, c->name, c->current_lap);
     update_current_lap_crosses(c);
     struct Node* current_lap = get_lap_data(c->current_lap);
+    printf("[volta %d] %s %d %d\n", c->current_lap, c->name, current_lap->line_crosses, total_cyclists_running);
     add_cyclist_lap_data_into_ranking(c);
     if (current_lap->line_crosses == total_cyclists_running) {
       print_lap_ranking(get_lap_data(c->current_lap)->lap_ranking, c->current_lap);
@@ -146,6 +148,11 @@ void check_new_lap(struct Cyclist *c) {
       struct Node *new_lap = create_new_lap(next_lap_num);
       global_current_lap->next = new_lap;
       global_current_lap = new_lap;
+    }
+    check_if_broken(c);
+    if (c->must_stop) {
+      pthread_mutex_unlock(&lap_completed);
+      return;
     }
     c->current_lap++;
     update_speed(c);
@@ -202,11 +209,8 @@ void check_if_broken(struct Cyclist *c) {
     int crash = flip_coin(5);
     if (crash) {
       notify_cyclist_broke(c);
-      c->broke = 1;
-      add_cyclist_lap_data_into_ranking(c);
       c->must_stop = 1;
     }
-
   }
 }
 

@@ -61,7 +61,6 @@ void *pedal(void * args) {
     pthread_mutex_lock(&(c->mutex));
     update_position(c);
     check_new_lap(c);
-    check_if_broken(c);
     // espere os outros ciclistas chegarem nesse passo
     wait_cyclists_advance();
     // avança um passo no tempo local
