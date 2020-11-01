@@ -15,5 +15,6 @@ struct Node* create_new_lap(int lap_num) {
   lap->lap_num = lap_num;
   lap->line_crosses = 0;
   lap->next = NULL;
+  lap->lap_ranking = NULL;
   return lap;
 }

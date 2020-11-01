@@ -1,6 +1,8 @@
 #ifndef linked_list_H
 #define linked_list_H
 
+#include "ranking.h"
+
 #ifndef linked_list_IMPORT
   #define EXTERN
 #else
@@ -10,6 +12,7 @@
 struct Node {
   int lap_num;
   int line_crosses;
+  struct Ranking *lap_ranking;
   struct Node* next;
 };
 

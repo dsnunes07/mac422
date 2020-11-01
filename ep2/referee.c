@@ -28,7 +28,6 @@ void *referee_worker(void *args) {
     referee->race_is_on = check_winner();
     if (get_total_cyclists_running() < referee_cyclists_running) {
       update_step_barrier();
-      printf("barreira atualizada para %d\n", get_total_cyclists_running());
       referee_cyclists_running = get_total_cyclists_running();
     }
     // avança a referencia de tempo local

@@ -33,6 +33,7 @@ void print_int_array(int *arr, int n){
 }
 
 int flip_coin(int probability) {
-  int result = rand() % 100 < probability;
+  int random_number = (rand() % 100 + 1);
+  int result = random_number < probability;
   return result;
 }

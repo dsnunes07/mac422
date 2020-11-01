@@ -39,6 +39,7 @@ struct Cyclist {
   int current_lap;
   int new_lap;
   int run;
+  int broke;
 };
 
 /* Global variables declarations here */

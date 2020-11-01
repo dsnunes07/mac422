@@ -53,7 +53,8 @@ void update_position(struct Cyclist *c) {
 void *pedal(void * args) {
   struct Cyclist *c = (struct Cyclist*) args;
   while (c->still_running) {
-    while (!(c->run));
+    while (!(c->run))
+      usleep(100);
     if (c->must_stop) {
       break;
     }
@@ -71,7 +72,6 @@ void *pedal(void * args) {
   }
   c->run = 0;
   pthread_mutex_unlock(&(c->mutex));
-  printf("%s dá adeus a competição!\n", c->name);
   pthread_exit(NULL);
 }
 
@@ -115,6 +115,7 @@ struct Cyclist* create_cyclists(int n) {
     pthread_mutex_t cyclist_lock = PTHREAD_MUTEX_INITIALIZER;
     cyclists[i].mutex = cyclist_lock;
     cyclists[i].run = 1;
+    cyclists[i].broke = 0;
   }
   return cyclists;
 }
