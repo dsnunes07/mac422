@@ -43,8 +43,29 @@ int completing_new_lap(struct Cyclist *c) {
   return 0;
 }
 
+int break_if_necessary(struct Cyclist *c) {
+  double speed = c->speed;
+  int position = c->velodrome_position;
+  int lane = c->lane;
+  int next_id = get_velodrome_position(position+1, lane);
+  if (next_id != -1) {
+    struct Cyclist *ahead = get_cyclist(next_id);
+    if (ahead->speed < c->speed) {
+      c->speed = ahead->speed;
+    }
+  }
+}
+
+void overtake(struct Cyclist *c) {
+  int position = c->velodrome_position;
+  int lane = c->lane;
+  set_velodrome_position(position, lane, -1);
+  set_velodrome_position(position+1, lane+1, c->id);
+}
+
 void update_position(struct Cyclist *c) {
   pthread_mutex_lock(&update_position_mutex);
+  break_if_necessary(c);
   move_forward(c);
   pthread_mutex_unlock(&update_position_mutex);
 }
