@@ -94,13 +94,41 @@ int break_if_necessary(struct Cyclist *c) {
 void overtake(struct Cyclist *c) {
   int position = c->velodrome_position;
   int lane = c->lane;
+  int dir = 1;
+  if (lane == 9) {
+    dir = -1;
+  }
   set_velodrome_position(position, lane, -1);
-  set_velodrome_position(position+1, lane+1, c->id);
+  set_velodrome_position(position+1, lane+dir, c->id);
+}
+
+int best_overtake(struct Cyclist *c) {
+  int d = c->velodrome_position;
+  int lane = c->lane;
+  int dir = 1;
+  // tenta ultrapassar para a direita se 
+  // estiver ja no limite externo da pista
+  if (lane == 9) {
+    dir = -1;
+  }
+  int ahead_id = get_velodrome_position(d+1, lane);
+  int diagonal_id = get_velodrome_position(d+1, lane+dir);
+  // tento ultrapassar se tem alguem possivelmente mais lento a frente
+  // se estou mais possivelmente mais rapido que ele e se não tem ninguem na diagonal
+  if ((c->speed != 1.0) && ahead_id != -1 && diagonal_id == -1) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 void update_position(struct Cyclist *c) {
   pthread_mutex_lock(&update_position_mutex);
-  move_forward(c);
+  if (best_overtake(c)) {
+    overtake(c);
+  } else {
+    move_forward(c);
+  }
   break_if_necessary(c);
   pthread_mutex_unlock(&update_position_mutex);
 }

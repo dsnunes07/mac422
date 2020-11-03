@@ -44,9 +44,9 @@ void print_velodrome_position(int d) {
   for (int lane = 0; lane < 10; lane++) {
     int cyclist_id = get_velodrome_position(d, lane);
     if (cyclist_id == -1)
-      printf("_");
+      printf("_ ");
     else
-      printf("%-3d", cyclist_id);
+      printf("%-3d ", cyclist_id);
   }
   printf("\n");
 }

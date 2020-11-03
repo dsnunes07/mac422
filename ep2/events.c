@@ -17,6 +17,7 @@ void print_lap_ranking(struct Ranking *r, int lap) {
 }
 
 void print_final_ranking(struct Ranking *r) {
+  pthread_mutex_lock(&print_output);
   printf("--------------------------------------\nRanking final da corrida\n--------------------------------------\n");
   int classification = 1;
   printf("pos. nome número país\n");
@@ -27,6 +28,7 @@ void print_final_ranking(struct Ranking *r) {
       printf("[quebrou na volta %d] %-10s #%-5d %-30s\n", r->cyclist->current_lap, r->cyclist->name, r->cyclist->number, r->cyclist->country);
     r = r->last;
   }
+  pthread_mutex_unlock(&print_output);
 }
 
 void notify_cyclist_broke(struct Cyclist *c) {

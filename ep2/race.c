@@ -201,7 +201,6 @@ void add_to_global_ranking(struct Cyclist *c) {
   entry->last = global_ranking;
   append_ranking(entry, &global_ranking);
   global_ranking = global_ranking->next;
-  printf("adicionou %s ao ranking global!\n", global_ranking->cyclist->name);
 }
 
 struct Ranking* get_global_ranking() {
