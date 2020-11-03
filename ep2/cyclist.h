@@ -42,8 +42,6 @@ struct Cyclist {
   int broke;
 };
 
-/* Global variables declarations here */
-
 /* Function prototypes here */
 EXTERN struct Cyclist* create_cyclists(int n);
 

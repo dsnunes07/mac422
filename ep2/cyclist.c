@@ -8,6 +8,41 @@
 #include <unistd.h>
 #include <math.h>
 
+char countries[32][32] = {
+  "Angola",
+  "Egito",
+  "Irã",
+  "Turquia",
+  "Suriname",
+  "Moçambique",
+  "Congo",
+  "Brasil",
+  "Portugal",
+  "França",
+  "Alemanha",
+  "Russia",
+  "Argentina",
+  "Uruguai",
+  "Chile",
+  "Estados Unidos",
+  "Mexico",
+  "Australia",
+  "Nova Zelândia",
+  "Itália",
+  "Inglaterra",
+  "Nigeria",
+  "Japão",
+  "Tailândia",
+  "China",
+  "Bolívia",
+  "Espanha",
+  "Marrocos",
+  "India",
+  "Pagaguai",
+  "Colombia",
+  "Peru"
+};
+
 int d = 0;
 pthread_mutex_t update_position_mutex;
 
@@ -65,8 +100,8 @@ void overtake(struct Cyclist *c) {
 
 void update_position(struct Cyclist *c) {
   pthread_mutex_lock(&update_position_mutex);
-  break_if_necessary(c);
   move_forward(c);
+  break_if_necessary(c);
   pthread_mutex_unlock(&update_position_mutex);
 }
 
@@ -91,6 +126,7 @@ void *pedal(void * args) {
     c->run = 0;
   }
   c->run = 0;
+  set_velodrome_position(c->velodrome_position, c->lane, -1);
   pthread_mutex_unlock(&(c->mutex));
   pthread_exit(NULL);
 }
@@ -121,7 +157,7 @@ struct Cyclist* create_cyclists(int n) {
     name_cyclist(i, &(cyclists[i].name));
     cyclists[i].id = i;
     cyclists[i].number = draw_cyclist_number(i, n);
-    cyclists[i].country = "Brasil";
+    cyclists[i].country = countries[random_integer(0, 31)];
     cyclists[i].speed = 1.0;
     cyclists[i].real_position = 0.0;
     cyclists[i].velodrome_position = 0;

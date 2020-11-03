@@ -21,9 +21,11 @@ int total_positions;
 int cyclists_finished = 0;
 int cyclists_released = 0;
 int total_cyclists_participating = 0;
+struct Ranking *global_ranking;
 
 // mutex for update cyclists current lap
 pthread_mutex_t lap_completed = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t global_ranking_mutex = PTHREAD_MUTEX_INITIALIZER;
 // barriers that controls race flow
 pthread_barrier_t step_barrier;
 int referee_working = 0;
@@ -81,6 +83,9 @@ void check_elimination(struct Cyclist *c) {
   struct Node *current_lap = get_lap_data(c->current_lap);
   printf("%s ficou em último na volta %d e será eliminado!\n", c->name, c->current_lap);
   c->must_stop = 1;
+  pthread_mutex_lock(&global_ranking_mutex);
+  add_to_global_ranking(c);
+  pthread_mutex_unlock(&global_ranking_mutex);
 }
 
 void lock_cyclists() {
@@ -184,20 +189,41 @@ void initialize_race_barriers() {
   pthread_barrier_init(&step_barrier, NULL, total_cyclists_running);
 }
 
+void initialize_global_ranking() {
+  global_ranking = malloc(sizeof(struct Ranking*));
+}
+
+void add_to_global_ranking(struct Cyclist *c) {
+  struct Ranking *entry = malloc(sizeof(struct Ranking));
+  entry->cyclist = c;
+  entry->broke = c->broke;
+  entry->next = NULL;
+  entry->last = global_ranking;
+  append_ranking(entry, &global_ranking);
+  global_ranking = global_ranking->next;
+  printf("adicionou %s ao ranking global!\n", global_ranking->cyclist->name);
+}
+
+struct Ranking* get_global_ranking() {
+  return global_ranking;
+}
+
 int cyclists_size;
-void configure_race(int d, int n) {
+void configure_race(int d, int n, int debug) {
   total_positions = d;
   total_cyclists_running = n;
   total_cyclists_participating = n;
   cyclists_size = n;
   initialize_race_barriers();
   create_velodrome(d);
+  initialize_global_ranking();
   set_track_length(d-1);
   cyclists = create_cyclists(n);
-  initialize_referee(d, n);
+  initialize_referee(d, n, debug);
   put_cyclists_on_start_line(cyclists, n);
   assign_starting_laps();
   initialize_cyclists_threads(cyclists, n);
+  
 }
 
 void check_eliminations() {
@@ -215,6 +241,10 @@ void check_if_broken(struct Cyclist *c) {
     if (crash) {
       notify_cyclist_broke(c);
       c->must_stop = 1;
+      c->broke = 1;
+      pthread_mutex_lock(&global_ranking_mutex);
+      add_to_global_ranking(c);
+      pthread_mutex_unlock(&global_ranking_mutex);
     }
   }
 }
@@ -228,6 +258,9 @@ int check_winner() {
       if (c->still_running) {
         printf("PARABÉNS! %s é o vencedor!\n", c->name);
         c->still_running = 0;
+        pthread_mutex_lock(&global_ranking_mutex);
+        add_to_global_ranking(c);
+        pthread_mutex_unlock(&global_ranking_mutex);
         return 0;
       }
     }
@@ -246,4 +279,10 @@ struct Cyclist* get_cyclist(int id) {
 void update_step_barrier() {
   pthread_barrier_destroy(&step_barrier);
   pthread_barrier_init(&step_barrier, NULL, total_cyclists_running);
+}
+
+void print_velodrome() {
+  for (int i = 0; i < total_positions; i++) {
+    print_velodrome_position(i);
+  }
 }

@@ -12,6 +12,8 @@
 
 EXTERN void print_lap_ranking(struct Ranking *r, int lap);
 
+EXTERN void print_final_ranking(struct Ranking *r);
+
 EXTERN void notify_cyclist_broke(struct Cyclist *c);
 
 #undef events_IMPORT
