@@ -17,6 +17,6 @@ void print_lap_ranking(struct Ranking *r, int lap) {
 
 void notify_cyclist_broke(struct Cyclist *c) {
   pthread_mutex_lock(&print_output);
-  printf("[%d] %s quebrou na volta %d! Estava na posição %d na faixa %d\n", c->step, c->name, c->current_lap, c->velodrome_position, c->lane);
+  printf("[%d] %s quebrou na volta %d!\n", c->step, c->name, c->current_lap);
   pthread_mutex_unlock(&print_output);
 }

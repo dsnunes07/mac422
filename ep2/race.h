@@ -35,6 +35,8 @@ EXTERN void lock_cyclists();
 
 EXTERN void unlock_cyclists();
 
+EXTERN void check_rankings();
+
 #undef race_IMPORT
 #undef EXTERN
 #endif

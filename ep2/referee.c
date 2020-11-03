@@ -25,6 +25,7 @@ void *referee_worker(void *args) {
   while (referee->race_is_on) {
     lock_cyclists();
     check_eliminations();
+    // check_rankings();
     referee->race_is_on = check_winner();
     if (get_total_cyclists_running() < referee_cyclists_running) {
       update_step_barrier();
