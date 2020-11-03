@@ -8,6 +8,41 @@
 #include <unistd.h>
 #include <math.h>
 
+char countries[32][32] = {
+  "Angola",
+  "Egito",
+  "Irã",
+  "Turquia",
+  "Suriname",
+  "Moçambique",
+  "Congo",
+  "Brasil",
+  "Portugal",
+  "França",
+  "Alemanha",
+  "Russia",
+  "Argentina",
+  "Uruguai",
+  "Chile",
+  "Estados Unidos",
+  "Mexico",
+  "Australia",
+  "Nova Zelândia",
+  "Itália",
+  "Inglaterra",
+  "Nigeria",
+  "Japão",
+  "Tailândia",
+  "China",
+  "Bolívia",
+  "Espanha",
+  "Marrocos",
+  "India",
+  "Pagaguai",
+  "Colombia",
+  "Peru"
+};
+
 int d = 0;
 pthread_mutex_t update_position_mutex;
 
@@ -59,14 +94,42 @@ int break_if_necessary(struct Cyclist *c) {
 void overtake(struct Cyclist *c) {
   int position = c->velodrome_position;
   int lane = c->lane;
+  int dir = 1;
+  if (lane == 9) {
+    dir = -1;
+  }
   set_velodrome_position(position, lane, -1);
-  set_velodrome_position(position+1, lane+1, c->id);
+  set_velodrome_position(position+1, lane+dir, c->id);
+}
+
+int best_overtake(struct Cyclist *c) {
+  int d = c->velodrome_position;
+  int lane = c->lane;
+  int dir = 1;
+  // tenta ultrapassar para a direita se 
+  // estiver ja no limite externo da pista
+  if (lane == 9) {
+    dir = -1;
+  }
+  int ahead_id = get_velodrome_position(d+1, lane);
+  int diagonal_id = get_velodrome_position(d+1, lane+dir);
+  // tento ultrapassar se tem alguem possivelmente mais lento a frente
+  // se estou mais possivelmente mais rapido que ele e se não tem ninguem na diagonal
+  if ((c->speed != 1.0) && ahead_id != -1 && diagonal_id == -1) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 void update_position(struct Cyclist *c) {
   pthread_mutex_lock(&update_position_mutex);
+  if (best_overtake(c)) {
+    overtake(c);
+  } else {
+    move_forward(c);
+  }
   break_if_necessary(c);
-  move_forward(c);
   pthread_mutex_unlock(&update_position_mutex);
 }
 
@@ -91,6 +154,7 @@ void *pedal(void * args) {
     c->run = 0;
   }
   c->run = 0;
+  set_velodrome_position(c->velodrome_position, c->lane, -1);
   pthread_mutex_unlock(&(c->mutex));
   pthread_exit(NULL);
 }
@@ -121,7 +185,7 @@ struct Cyclist* create_cyclists(int n) {
     name_cyclist(i, &(cyclists[i].name));
     cyclists[i].id = i;
     cyclists[i].number = draw_cyclist_number(i, n);
-    cyclists[i].country = "Brasil";
+    cyclists[i].country = countries[random_integer(0, 31)];
     cyclists[i].speed = 1.0;
     cyclists[i].real_position = 0.0;
     cyclists[i].velodrome_position = 0;

@@ -19,7 +19,7 @@ struct Referee {
   int race_is_on;
 };
 
-EXTERN void initialize_referee(int n, int d);
+EXTERN void initialize_referee(int n, int d, int debug);
 
 /* Function prototypes here */
 

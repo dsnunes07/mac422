@@ -40,13 +40,13 @@ void free_velodrome_position(int d, int lane) {
 
 /* Prints all velodrome lanes at position d */
 void print_velodrome_position(int d) {
-  printf("Position %dm:\n", d);
+  printf("Posição %dm:\n", d);
   for (int lane = 0; lane < 10; lane++) {
     int cyclist_id = get_velodrome_position(d, lane);
     if (cyclist_id == -1)
-      printf("| |");
+      printf("_ ");
     else
-      printf("%d", cyclist_id);
+      printf("%-3d ", cyclist_id);
   }
   printf("\n");
 }
