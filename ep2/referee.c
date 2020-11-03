@@ -43,6 +43,7 @@ void *referee_worker(void *args) {
     if (race_data->debug) {
       printf("Pista no instante %d ms: \n", referee->step * time);
       print_velodrome();
+      usleep(time * 1000);
     }
     // avança a referencia de tempo local
     referee->step++;

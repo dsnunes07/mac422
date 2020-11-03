@@ -1,0 +1,15 @@
+MAC0422 - EP2
+
+Compilado e testado com gcc versão 9.3.0.
+
+Para compilar esse exercício-programa, executar
+
+make ep2
+
+Para executar esse exercício-programa, executar
+
+./ep2 d n [-d]
+
+em que d é um inteiro especificando o tamanho do velódromo;
+n é um inteiro especificando o total de ciclistas participantes
+e -d é uma flag opcional para ligar a opção "debug", no programa, que exibirá a pista em intervalos de 60ms.
