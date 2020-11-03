@@ -37,6 +37,8 @@ EXTERN void unlock_cyclists();
 
 EXTERN void check_rankings();
 
+EXTERN struct Cyclist *get_cyclist(int id);
+
 #undef race_IMPORT
 #undef EXTERN
 #endif

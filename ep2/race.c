@@ -71,7 +71,6 @@ struct Node *get_lap_data(int lap_num) {
   struct Node *lap_list = laps;
   while(lap_list != NULL) {
     if (lap_list->lap_num == lap_num) {
-      // printf("volta %d total ciclistas: %d\n", lap_num, lap_list->total_cyclists);
       return lap_list;
     }
     lap_list = lap_list->next;
@@ -133,7 +132,6 @@ void check_new_lap(struct Cyclist *c) {
     c->crossing_line = 1;
     pthread_mutex_lock(&lap_completed);
     struct Node* current_lap = get_lap_data(c->current_lap);
-    printf("%s volta %d ciclistas na volta: %d ciclistas na corrida: %d\n", c->name, c->current_lap, current_lap->cyclists_on_lap, total_cyclists_running);
     check_if_broken(c);
     if (c->must_stop) {
       total_cyclists_running--;
@@ -206,7 +204,6 @@ void check_eliminations() {
   for (int i = 0; i < cyclists_size; i++) {
     int state = cyclist_state(&(cyclists[i]));
     if (state == ELIMINATED) {
-      // total_cyclists_running--;
       cyclists[i].still_running = 0;
     }
   }
@@ -237,17 +234,16 @@ int check_winner() {
   }
 }
 
+struct Cyclist* get_cyclist(int id) {
+  for (int i = 0; i < total_cyclists_participating; i++) {
+    if (cyclists[i].id == id) {
+      return &(cyclists[i]);
+    }
+  }
+  return NULL;
+}
+
 void update_step_barrier() {
   pthread_barrier_destroy(&step_barrier);
   pthread_barrier_init(&step_barrier, NULL, total_cyclists_running);
-}
-
-void check_rankings() {
-  struct Node *race_laps = laps;
-  while (race_laps != NULL) {
-    if (race_laps->line_crosses >= total_cyclists_running) {
-      printf("entendo que a volta %d foi inteiramente finalizada\n", race_laps->lap_num);
-    }
-    race_laps = race_laps->next;
-  }
 }
