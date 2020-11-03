@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "cyclist.h"
+#include <pthread.h>
 
 #ifdef race_IMPORT
   #define EXTERN
@@ -14,21 +15,27 @@
 
 EXTERN void configure_race(int d, int n);
 
-EXTERN void start_race(void);
+EXTERN void complete_lap(struct Cyclist *c);
 
-EXTERN void request_updates(struct Cyclist *cyclist);
+EXTERN void check_new_lap(struct Cyclist *c);
 
-EXTERN int eliminated(struct Cyclist *cyclist);
+EXTERN void check_if_broken(struct Cyclist *c);
 
-EXTERN void update_position(struct Cyclist *c, int d, int lane);
+EXTERN void check_eliminations();
 
-EXTERN void leave_race(struct Cyclist *c);
+EXTERN int check_winner();
 
-EXTERN void cross_start_line(struct Cyclist *c);
+EXTERN void update_step_barrier();
 
-EXTERN void update_number_of_cyclists_active(int n);
+EXTERN int get_total_cyclists_running(void);
 
-EXTERN void advance_step(struct Cyclist *c);
+EXTERN void wait_cyclists_advance();
+
+EXTERN void lock_cyclists();
+
+EXTERN void unlock_cyclists();
+
+EXTERN void check_rankings();
 
 #undef race_IMPORT
 #undef EXTERN

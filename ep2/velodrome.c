@@ -22,6 +22,7 @@ int get_velodrome_position(int d, int lane) {
 
 /* Place or remove (by setting -1) a cyclist in a velodrome position */
 void set_velodrome_position(int d, int lane, int cyclist_id) {
+  // printf("placing %d on %d %d\n", cyclist_id, d, lane);
   velodrome[d*LANES + lane] = cyclist_id;
 }
 

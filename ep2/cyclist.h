@@ -24,14 +24,22 @@ struct Cyclist {
   char* name;
   int number;
   char* country;
-  int speed;
-  int position;
+  double speed;
+  double real_position;
+  int last_velodrome_position;
+  int velodrome_position;
   int lane;
   pthread_t thread;
+  pthread_mutex_t mutex;
   int still_running;
-  int current_lap;
+  int must_stop;
   int step;
   int checkpoint_ranking;
+  int crossing_line;
+  int current_lap;
+  int new_lap;
+  int run;
+  int broke;
 };
 
 /* Global variables declarations here */
@@ -46,6 +54,8 @@ EXTERN int draw_cyclist_number(int low, int high);
 EXTERN void print_cyclist_data(struct Cyclist *c);
 
 EXTERN void set_track_length(int length);
+
+EXTERN void update_speed(struct Cyclist *c);
 
 #undef cyclist_IMPORT
 #undef EXTERN
