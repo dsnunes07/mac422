@@ -20,12 +20,12 @@ void print_final_ranking(struct Ranking *r) {
   pthread_mutex_lock(&print_output);
   printf("--------------------------------------\nRanking final da corrida\n--------------------------------------\n");
   int classification = 1;
-  printf("pos. nome número país\n");
+  printf("pos. ultima vez que cruzou a linha de chegada nome número país\n");
   while (r->cyclist != NULL) {
     if (!(r->cyclist->broke))
-      printf("%-24d %-10s #%-5d %-30s\n", classification++, r->cyclist->name, r->cyclist->number, r->cyclist->country);
+      printf("%-24d %dms %-10s #%-5d %-30s\n", classification++, r->cyclist->step * 60, r->cyclist->name, r->cyclist->number, r->cyclist->country);
     else
-      printf("[quebrou na volta %d] %-10s #%-5d %-30s\n", r->cyclist->current_lap, r->cyclist->name, r->cyclist->number, r->cyclist->country);
+      printf("[quebrou na volta %d] %-10s %dms #%-5d %-30s\n", r->cyclist->current_lap, r->cyclist->name, r->cyclist->step * 60, r->cyclist->number, r->cyclist->country);
     r = r->last;
   }
   pthread_mutex_unlock(&print_output);
