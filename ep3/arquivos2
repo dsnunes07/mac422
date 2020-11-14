@@ -1,0 +1,23 @@
+#fat#
+1|2|
+#fat#
+
+#bitmap#
+110000000000000000000000000000000000
+#bitmap#
+
+#metadata#
+&%|created|modified|accessed|in[1]
+&moby.txt|size|created|modified|accessed|0
+&python.txt|size|created|modified|accessed|0
+&foo.txt|size|created|modified|accessed|0
+&cities.txt|size|created|modified|accessed|0
+#metadata#
+
+#contents#
+aaaaaaaaaaaaaaaaaaaaaaaaa...
+bbbbbbbbbbbbbbbbbbbbbbbbb...
+ccccccccccccccccccccccccc...
+#contents#
+
+cp moby.txt /moby.txt

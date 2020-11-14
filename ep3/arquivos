@@ -1,0 +1,25 @@
+# diretorio vazio:
+dir[nome|fs[]|ds[]]
+
+mkdir daniel/musicas/rock
+
+
+
+dir[nome|fs[1|2|3|4]|ds[dir[nome|fs[5|7|8]|ds[]]|]]
+
+#metadata#: região do sistema de arquivos que guarda metadados sobre arquivos que não são diretórios
+
+#metadata#
+&moby.txt|size|created|modified|accessed|first_block (1)
+&casmurro.txt|size|created|modified|accessed|first_block (2)
+&%daniel|created|modified|accessed|contents[0|1|7|907]
+#metadata#
+
+#data#    cada linha ou posição: 4KB => 4096 caracteres utf-8, se totalmente ocupada
+it w
+as t
+#                     (bloco vazio)
+#
+he b
+est                   (ultimo bloco)
+#data#
