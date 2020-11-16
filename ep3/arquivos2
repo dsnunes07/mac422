@@ -1,23 +1,47 @@
-#fat#
-1|2|
-#fat#
+# Todos os blocos inicialmente começam e terminam em si mesmos
+# Valores reservados para a tabela FAT
+# FFFF: bloco final do arquivo
+FAT FFFF|FFFF|EEEE|EEEE|FFFF|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|EEEE|
+BIT 01111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+=
+4096 BYTES + 2BYTES + 1BYTE (cada bloco) = 1 bloco
+3 BYTES + 1 BYTE + (n blocos)*5 bytes +
+3 BYTES + 1 BYTE + (n blocos) bytes + 1 BYTE + 4099*(n blocos) <= 100 MB
 
-#bitmap#
-110000000000000000000000000000000000
-#bitmap#
 
-#metadata#
-&%|created|modified|accessed|in[1]
-&moby.txt|size|created|modified|accessed|0
-&python.txt|size|created|modified|accessed|0
-&foo.txt|size|created|modified|accessed|0
-&cities.txt|size|created|modified|accessed|0
-#metadata#
+0 %epepepepepepepepepepEPP3&0000000000&0000000000&0000000000&0000|
+1 ^arthur&now&now&now&4
+2
+3
+4 oi eu sou arthur
+5
+6
+7
+24360
 
-#contents#
-aaaaaaaaaaaaaaaaaaaaaaaaa...
-bbbbbbbbbbbbbbbbbbbbbbbbb...
-ccccccccccccccccccccccccc...
-#contents#
+# Sintaxe
+%: sinaliza diretório
+^: arquivo
+|: separa objetos
+&: separa atributos
+FAT: identifica que é a tabela FAT
+BIT: identifica que é o bitmap
 
-cp moby.txt /moby.txt
+objeto arquivo:
+nome: 16 caracteres (com extensão ponto etc)
+tamanho: FFFFFFF (7 dígitos hexadecimal) 7 bytes
+t1: unix era (10 bytes)
+t2: unix era (10 bytes)
+t3: unix era (10 bytes)
+primeiro bloco: 4 bytes
+
+objeto diretório:
+nome: 23 caracteres (com extensão ponto etc)
+tamanho: FFFFFFF (7 dígitos hexadecimal) 7 bytes
+t1: unix era (10 bytes)
+t2: unix era (10 bytes)
+t3: unix era (10 bytes)
+primeiro bloco: 4 bytes
+
+para cada entrada em um arquivo regular: 7 + 30 + 4 + 6 + 1 = 48 + 16 (nome)
+para cada entrada de diretório: 30 + 4 + 5 + 1 + 24 (nome) = 64
