@@ -1,4 +1,4 @@
-from commands import *
+from system_constants import *
 
 class Command:
 
@@ -38,5 +38,3 @@ class Command:
       pass
     else:
       print(f'{command}: comando não encontrado.')
-    
-  

@@ -1,0 +1,12 @@
+funcionalidades:
+
+mount <arquivo>:
+  * recebe o caminho do arquivo completo, em <arquivo>
+  * abre o arquivo e carrega na memória a tabela FAT e o bitmap
+  * se for um novo arquivo, cria uma fat, um bitmap e uma lista de blocos, todos vazios, na unidade
+
+cp origem destino:
+  * abre o arquivo "origem", que é um arquivo que existe fora do simulador
+  * procura no sistema de arquivos o arquivo destino, sempre a partir da root. Se ele existir, apaga seu conteúdo e suas referências na FAT
+  * Se ele não existir, cria uma nova referência para ele em seu diretório
+  * Copia o conteúdo de origem em destino
