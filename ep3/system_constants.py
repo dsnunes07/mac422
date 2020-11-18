@@ -25,3 +25,7 @@ FINAL_BLOCK = 65535
 OBJ_SEPARATOR = '|'
 # Número de posições que a tabela FAT ocupa
 FAT_OFFSET = 121505
+BLOCK_LIST_IDX = BIT_START_IDX + TOTAL_BLOCKS + 3
+FIRST_BLOCK_LINE = 4
+# overhead de metadados de arquivos
+FILE_OVERHEAD = 64

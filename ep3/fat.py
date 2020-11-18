@@ -1,4 +1,4 @@
-from system_constants import TOTAL_BLOCKS, FAT_START_IDX, BASE, OBJ_SEPARATOR, EMPTY_BLOCK
+from system_constants import TOTAL_BLOCKS, FAT_START_IDX, BASE, OBJ_SEPARATOR, EMPTY_BLOCK, FINAL_BLOCK
 
 class FAT:
   def __init__(self, filename):
@@ -17,6 +17,8 @@ class FAT:
   """ escreve uma tabela FAT vazia no sistema de arquivos recém criado """
   def create_new_table(self):
     self.table = [EMPTY_BLOCK] * TOTAL_BLOCKS
+    # define o bloco do / como seu último bloco
+    self.table[0] = FINAL_BLOCK
     self.write_table_to_unit()
   
   """ carrega na memória a tabela FAT representada no arquivo """
