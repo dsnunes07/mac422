@@ -12,21 +12,22 @@ class Bitmap:
     f.seek(FAT_OFFSET)
     if (not 'BIT' in f.readline()):
       f.close()
-      print('criando novo bitmap...')
       self.create_new_bitmap()
     self.map = self.parse_bitmap()
   
   """ escreve um bitmap vazio no sistema de arquivos recém criado """
   def create_new_bitmap(self):
     self.map = [1] * TOTAL_BLOCKS
+    # define que o bloco do '/' está ocupado
+    self.map[0] = 0
     self.write_bitmap_to_unit()
   
   """ lê o bitmap presente na unidade, deixando-o carregado na instância """
   def parse_bitmap(self):
     f = open(self.filename, 'r')
     f.seek(BIT_START_IDX)
-    str_bitmap = list(f.read())
-    map = [int(pos) for pos in str_bitmap[:-1]]
+    str_bitmap = list(f.readline())[:-1]
+    map = [int(pos) for pos in str_bitmap]
     return map
 
   def write_bitmap_to_unit(self):
@@ -40,5 +41,5 @@ class Bitmap:
     map_str = 'BIT '
     for bit in self.map:
       map_str += str(bit)
-    map_str += '\n'
+    map_str += '\n=\n'
     return map_str

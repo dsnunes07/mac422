@@ -1,5 +1,5 @@
 from system_constants import *
-
+from files import CopyFiles
 class Command:
 
   def __init__(self, command, file_system):
@@ -15,7 +15,10 @@ class Command:
     if (command == MOUNT):
       self.file_system.mount(input_split[1])
     elif (command == CP):
-      print('é o cp!')
+      origin = input_split[1]
+      destiny = input_split[2]
+      cp = CopyFiles(origin, destiny, self.file_system)
+      cp.copy_to_unit()
     elif (command == MKDIR):
       print('é o mkdir')
     elif (command == RMDIR):

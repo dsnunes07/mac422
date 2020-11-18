@@ -1,5 +1,5 @@
 from cprompt import Command
-from simulation import FileSystem
+from simulation import FileSystem, file_system
 
 def main():
   user_input = ''
