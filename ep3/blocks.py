@@ -15,7 +15,7 @@ class BlockList:
     f = open(self.filename, 'r+')
     f.seek(BLOCK_LIST_IDX)
     for i in range(TOTAL_BLOCKS):
-      f.write(f'{i} \n')
+      f.write('{:04x} \n'.format(i))
 
 class Reader:
 
