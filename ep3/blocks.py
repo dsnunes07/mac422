@@ -1,7 +1,7 @@
 import re
-from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX
+from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK
 from patterns import BLOCK_START, FILE_OBJ, DIR_OBJ
-from files import File, Folder
+from files import File, Directory
 
 class BlockList:
   
@@ -19,33 +19,83 @@ class BlockList:
 
 class Reader:
 
-  def __init__(self, filename, fs):
-    self.filename = filename
+  def __init__(self, fs):
     self.fs = fs
   
   def read_block(self, i):
-    if (i == 0):
-      return self.read_root()
-  
-  def read_root(self):
-    fp = self.open_file_at_byte(BLOCK_LIST_IDX)
-    raw_root = re.sub(BLOCK_START, '', fp.readline()).rstrip()
-    files = self.parse_files(raw_root)
-    dirs = self.parse_dirs(raw_root)
+    files = []
+    dirs = []
+    while (i != FINAL_BLOCK):
+      print(f'Lendo bloco {i}')
+      content = self.raw_block_content(i)
+      files.extend(self.parse_files(content))
+      dirs.extend(self.parse_dirs(content))
+      i = self.fs.fat.table[i]
+    return files, dirs    
 
   def parse_files(self, data):
     files = []
     for file_string in re.findall(pattern=FILE_OBJ, string=data):
-      print(file_string)
-    breakpoint()
-    return []
+      file_splitted = file_string.split('&')
+      name = file_splitted[0].replace('^', '')
+      size = int(file_splitted[1], 16)
+      created_at = file_splitted[2]
+      modified_at = file_splitted[3]
+      accessed_at = file_splitted[4]
+      first_block = int(file_splitted[5], 16)
+      file = File(name, size, created_at, modified_at, accessed_at, first_block)
+      files.append(file)
+    return files
   
   def parse_dirs(self, data):
-    return []
+    dirs = []
+    for dir_string in re.findall(pattern=DIR_OBJ, string=data):
+      dir_splitted = dir_string.split('&')
+      name = dir_splitted[0].replace('%', '')
+      created_at = dir_splitted[1]
+      modified_at = dir_splitted[2]
+      accessed_at = dir_splitted[3]
+      first_block = int(dir_splitted[4], 16)
+      directory = Directory(name, created_at, modified_at, accessed_at, first_block)
+      dirs.append(directory)
+    return dirs
+  
+  def raw_block_content(self, block_number):
+    f = open(self.fs.filename, 'r')
+    f.seek(BLOCK_LIST_IDX)
+    block = -1
+    raw_content = ''
+    while (block != block_number):
+      raw_content = f.readline()
+      block += 1
+    f.close()
+    return raw_content
+  
+  """ Recebe uma string com o caminho de um diretório e retorna uma
+  tupla contendo as listas files e dirs, com o conteúdo desse diretório.
+  Se o caminho não existir, retorna None """
+  def read_path(self, path):
+    # ler tudo da root
+    files, dirs = self.read_block(0)
+    path_split = path.split('/')
+    # buscar os diretórios
+    for p in path_split[1:]:
+      dir_found = False
+      for d in dirs:
+        if (d.name == p):
+          dirs, files = self.read_block(d.first_block)
+          dir_found = True
+          break
+      if (not dir_found):
+        return None, None
+    return dirs, files
 
+class Writer:
 
-  def open_file_at_byte(self, byte):
-    fp = open(self.fs.filename, 'r+')
-    fp.seek(byte)
-    return fp
-    
+  def __init__(self, fs):
+    self.fs = fs
+  
+  """ Escreve a string content no bloco 'block'. Qualquer conteúdo existente em block
+  será apagado antes da escrita """
+  def write_to_block(self, block, content):
+    f = open(self.fs.filename)

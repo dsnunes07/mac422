@@ -1,5 +1,5 @@
-from system_constants import *
-from files import CopyFiles
+import system_constants as c
+from simulation import CP
 class Command:
 
   def __init__(self, command, file_system):
@@ -8,36 +8,36 @@ class Command:
 
   def str(self):
     return self.command
-  
+
   def execute(self):
     input_split = self.command.split(' ')
     command = input_split[0]
-    if (command == MOUNT):
+    if (command == c.MOUNT):
       self.file_system.mount(input_split[1])
-    elif (command == CP):
+    elif (command == c.CP):
       origin = input_split[1]
       destiny = input_split[2]
-      cp = CopyFiles(origin, destiny, self.file_system)
-      cp.copy_to_unit()
-    elif (command == MKDIR):
+      cp = CP(origin, destiny, self.file_system)
+      cp.cp()
+    elif (command == c.MKDIR):
       print('é o mkdir')
-    elif (command == RMDIR):
+    elif (command == c.RMDIR):
       print('é o rmdir!')
-    elif (command == CAT):
+    elif (command == c.CAT):
       print('é o cat!')
-    elif (command == TOUCH):
+    elif (command == c.TOUCH):
       print('é o touch!')
-    elif (command == RM):
+    elif (command == c.RM):
       print('é o rm!')
-    elif (command == LS):
+    elif (command == c.LS):
       print('é o ls!')
-    elif (command == FIND):
+    elif (command == c.FIND):
       print('é o find!')
-    elif (command == DF):
+    elif (command == c.DF):
       print('é o df!')
-    elif (command == UMOUNT):
+    elif (command == c.UMOUNT):
       self.file_system.umount()
-    elif (command == SAI):
+    elif (command == c.SAI):
       pass
     else:
       print(f'{command}: comando não encontrado.')

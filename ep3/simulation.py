@@ -45,9 +45,30 @@ class FileSystem:
     fp = open(self.filename, 'w')
     fp.close()
 
-  def create_or_update_entry(self, path, content):
-    self.search_entry(path)
+class CP:
   
-  def search_entry(self, path):
-    reader = Reader(path, self)
-    reader.read_block(0)
+  def __init__(self, origin, destiny, fs):
+    self.origin = origin
+    self.destiny = destiny
+    self.destiny_path = self._get_destiny_path()
+    self.fs = fs
+    self.content = self.read_origin_content()
+  
+  def read_origin_content(self):
+    f = open(self.origin, 'r')
+    return f.read()
+  
+  def _get_destiny_path(self):
+    last_slash = self.destiny.rfind('/')
+    return self.destiny[:last_slash]
+  
+  def cp(self):
+    # inicia o objeto de leitura
+    r = Reader(self.fs)
+    # lê o conteúdo da root
+    files, dirs = r.read_path(self.destiny_path)
+    if files == None or dirs == None:
+      print(f'Erro: {self.destiny_path} não existe')
+      return
+    w = Writer(self.fs)
+    print('Copiando')
