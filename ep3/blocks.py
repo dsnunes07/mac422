@@ -1,5 +1,5 @@
 import re
-from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK
+from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK, EMPTY_BLOCK
 from patterns import BLOCK_START, FILE_OBJ, DIR_OBJ
 from files import File, Directory
 
@@ -25,7 +25,8 @@ class Reader:
   def read_block(self, i):
     files = []
     dirs = []
-    while (i != FINAL_BLOCK):
+    while (i != FINAL_BLOCK and i != EMPTY_BLOCK):
+      breakpoint()
       print(f'Lendo bloco {i}')
       content = self.raw_block_content(i)
       files.extend(self.parse_files(content))
@@ -78,17 +79,19 @@ class Reader:
     # ler tudo da root
     files, dirs = self.read_block(0)
     path_split = path.split('/')
+    path_block = -1
     # buscar os diretórios
     for p in path_split[1:]:
       dir_found = False
       for d in dirs:
         if (d.name == p):
-          dirs, files = self.read_block(d.first_block)
+          files, dirs = self.read_block(d.first_block)
           dir_found = True
+          path_block = d.first_block
           break
       if (not dir_found):
-        return None, None
-    return dirs, files
+        return None, None, path_block
+    return dirs, files, path_block
 
 class Writer:
 

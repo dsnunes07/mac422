@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 from fat import FAT
 from bitmap import Bitmap
-from blocks import BlockList, Reader
+from blocks import BlockList, Reader, Writer
 from system_constants import BLOCK_LIST_IDX
 from patterns import BLOCK_START
 
@@ -44,7 +44,6 @@ class FileSystem:
       os.makedirs(os.path.dirname(self.filename), exist_ok=True)
     fp = open(self.filename, 'w')
     fp.close()
-
 class CP:
   
   def __init__(self, origin, destiny, fs):
@@ -66,9 +65,11 @@ class CP:
     # inicia o objeto de leitura
     r = Reader(self.fs)
     # lê o conteúdo da root
-    files, dirs = r.read_path(self.destiny_path)
-    if files == None or dirs == None:
+    files, dirs, block = r.read_path(self.destiny_path)
+    # verifica se "destino" existe
+    if block == -1:
       print(f'Erro: {self.destiny_path} não existe')
       return
+    breakpoint()
     w = Writer(self.fs)
     print('Copiando')
