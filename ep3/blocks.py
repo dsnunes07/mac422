@@ -2,6 +2,7 @@ import re
 from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK, EMPTY_BLOCK
 from patterns import BLOCK_START, FILE_OBJ, DIR_OBJ
 from files import File, Directory
+import fileinput
 
 class BlockList:
   
@@ -26,8 +27,6 @@ class Reader:
     files = []
     dirs = []
     while (i != FINAL_BLOCK and i != EMPTY_BLOCK):
-      breakpoint()
-      print(f'Lendo bloco {i}')
       content = self.raw_block_content(i)
       files.extend(self.parse_files(content))
       dirs.extend(self.parse_dirs(content))
@@ -80,6 +79,9 @@ class Reader:
     files, dirs = self.read_block(0)
     path_split = path.split('/')
     path_block = -1
+    if (len(path_split) == 1):
+      path_block = 0
+      return dirs, files, path_block
     # buscar os diretórios
     for p in path_split[1:]:
       dir_found = False
@@ -102,3 +104,29 @@ class Writer:
   será apagado antes da escrita """
   def write_to_block(self, block, content):
     f = open(self.fs.filename)
+  
+  """ Acrescenta a string content ao conteúdo já existente no bloco "block" """
+  def append_to_block(self, block, content):
+    r = Reader(self.fs)
+    block_old_content = r.raw_block_content(block)
+    for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      if line[0:4] == '{:04x}'.format(block):
+        line = line.replace('\n', '')
+        line += f'{content}\n'
+      print(line, end='')
+  
+  """ Recebe o bloco dir do diretório que contém o arquivo, recebe a string com
+  a entrada na tabela de diretórios e recebe  o objeto do arquivo a ser escrito,
+  que contém seu conteúdo """
+  def write_file(self, dir, entry, file):
+    dir_address = '{:04x}'.format(dir)
+    file_address = '{:04x}'.format(file.first_block)
+    for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      # escrever a entrada do diretório
+      if line[0:4] == dir_address:
+        line = line.replace('\n', '')
+        line += f'{entry}\n'
+      elif line[0:4] == file_address:
+        line = f'{line[0:5]}{file.content}\n'
+      print(line, end='')
+
