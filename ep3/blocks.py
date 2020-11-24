@@ -1,5 +1,5 @@
 import re
-from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK, EMPTY_BLOCK, MAX_BLOCK_LENGTH
+from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK, EMPTY_BLOCK, MAX_BLOCK_LENGTH, BIT_START_IDX
 from patterns import BLOCK_START, FILE_OBJ, DIR_OBJ, ENTRY_BY_NAME
 from files import File, Directory
 import fileinput
@@ -163,3 +163,9 @@ class Writer:
         pattern = ENTRY_BY_NAME.replace('(name)', file.name)
         line = re.sub(pattern, new_entry, line)
       print(line, end='')
+  
+  def write_fat(self):
+    self.fs.fat.write_table_to_unit()
+  
+  def write_bitmap(self):
+    self.fs.bitmap.write_bitmap_to_unit()
