@@ -75,12 +75,20 @@ class FileSystem:
     w = Writer(self)
     w.write_file(dir_block, entry, file)
   
+  """ Cria uma nova entrada para um arquivo existente e substituí a entrada
+  antiga """
   def update_file_entry(self, block, file):
     new_entry = self.create_file_entry(file)
     w = Writer(self)
     w.update_entry(file, block, new_entry)
-
   
+  """ Cria uma nova entrada para um diretório existente e substituí a entrada
+  antiga """
+  def update_dir_entry(self, block, dir):
+    new_entry = self.create_dir_entry(dir)
+    w = Writer(self)
+    w.update_entry(dir, block, new_entry)
+
   """ Recebe o bloco do diretório e o objeto do arquivo e cria uma entrada na
   tabela do diretório para o arquivo dado """
   def create_dir_entry(self, dir):
@@ -121,7 +129,7 @@ class CP:
     # inicia o objeto de leitura
     r = Reader(self.fs)
     # lê o conteúdo da root
-    files, dirs, block = r.read_path(self.destiny_path)
+    files, _, block = r.read_path(self.destiny_path)
     # verifica se o diretório de destino existe
     if block == -1:
       print(f'Erro: diretório {self.destiny_path} não existe!'),
@@ -174,12 +182,21 @@ class Touch:
     if parent_block == -1:
       print(f'Erro: {self.parent_dir} não existe')
       return
+
     for file in files:
       if file.name == self.filename:
         # atualiza o accessed_at do arquivo
         file.accessed_at = timestamp
         self.fs.update_file_entry(parent_block, file)
         return
+    
+    for dir in dirs:
+      if dir.name == self.filename:
+        # atualiza o accessed_at do diretório
+        dir.accessed_at = timestamp
+        self.fs.update_dir_entry(parent_block, dir)
+        return
+
     first_block = self.fs.nearest_empty_block(parent_block)
     file = File(self.filename, 0, timestamp, timestamp, timestamp, first_block)
     file.set_content('')
