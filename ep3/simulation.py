@@ -216,8 +216,12 @@ class MKDIR:
     #checa se há algum diretório com o mesmo nome
     for dir in dirs:
       if dir.name == self.dirname:
-        # atualiza o accessed_at do arquivo
         print(f'Erro: diretório {self.parent_dir} já existe! Não é possível criar um diretório com o mesmo nome'),
+        return
+    #checa se há algum arquivo com o mesmo nome
+    for file in files:
+      if file.name == self.dirname:
+        print(f'Erro: arquivo {self.parent_dir} já existe! Não é possível criar um diretório com o mesmo nome'),
         return
     first_block = self.fs.nearest_empty_block(parent_block)
     dir = Directory(self.dirname, timestamp, timestamp, timestamp, first_block)
