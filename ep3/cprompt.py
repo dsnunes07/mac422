@@ -21,7 +21,6 @@ class Command:
       cp = CP(origin, destiny, self.file_system)
       cp.cp()
     elif (command == c.MKDIR):
-      print('é o mkdir')
       destiny = input_split[1]
       mkdir = MKDIR(destiny, self.file_system)
       mkdir.mkdir()

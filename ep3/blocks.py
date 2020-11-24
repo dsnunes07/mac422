@@ -154,8 +154,7 @@ class Writer:
         block_i+=1
         if block_i < len(blocks):
           content_address = '{:04x}'.format(blocks[block_i])
-      print(line, end='')
-  
+      print(line, end='')  
   def update_entry(self, file, block, new_entry):
     block_address = '{:04x}'.format(block)
     for line in fileinput.FileInput(self.fs.filename, inplace=1):
@@ -163,9 +162,21 @@ class Writer:
         pattern = ENTRY_BY_NAME.replace('(name)', file.name)
         line = re.sub(pattern, new_entry, line)
       print(line, end='')
-  
+
   def write_fat(self):
     self.fs.fat.write_table_to_unit()
   
   def write_bitmap(self):
     self.fs.bitmap.write_bitmap_to_unit()
+
+  """ Recebe o bloco pai onde deve ocorrer a escrita e a 
+  entrada do diretório (no formato %dirname&timestamp&timestamp&timestamp&first_block) a ser criado. """
+  def write_directory(self, parent_block, entry):
+    dir_address = '{:04x}'.format(parent_block)
+    for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      # escrever a entrada do diretório
+      if line[0:4] == dir_address:
+        line = line.replace('\n', '')
+        line += f'{entry}\n'
+      print(line, end='')
+  
