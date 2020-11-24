@@ -12,7 +12,9 @@ class FAT:
     if (not 'FAT' in f.readline()):
       f.close()
       self.create_new_table()
-    self.table = self.parse_table()
+    else:
+      self.table = self.parse_table()
+    f.close()
   
   """ escreve uma tabela FAT vazia no sistema de arquivos recém criado """
   def create_new_table(self):
