@@ -17,7 +17,7 @@ class File:
 
 class Directory:
 
-  def __init__(self, name='', created_at=0, modified_at=0, accessed_at=0, first_block=0):
+  def __init__(self, name='', created_at=0, accessed_at=0, modified_at=0, first_block=0):
     self.name = name
     self.created_at = created_at
     self.modified_at = modified_at
