@@ -1,8 +1,9 @@
 import re
-from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK, EMPTY_BLOCK
-from patterns import BLOCK_START, FILE_OBJ, DIR_OBJ
+from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK, EMPTY_BLOCK, MAX_BLOCK_LENGTH
+from patterns import BLOCK_START, FILE_OBJ, DIR_OBJ, ENTRY_BY_NAME
 from files import File, Directory
 import fileinput
+from math import ceil
 
 class BlockList:
   
@@ -81,7 +82,7 @@ class Reader:
     path_block = -1
     if (len(path_split) == 1):
       path_block = 0
-      return dirs, files, path_block
+      return files, dirs, path_block
     # buscar os diretórios
     for p in path_split[1:]:
       dir_found = False
@@ -93,40 +94,64 @@ class Reader:
           break
       if (not dir_found):
         return None, None, path_block
-    return dirs, files, path_block
+    return files, dirs, path_block
 
 class Writer:
 
   def __init__(self, fs):
     self.fs = fs
   
-  """ Escreve a string content no bloco 'block'. Qualquer conteúdo existente em block
-  será apagado antes da escrita """
-  def write_to_block(self, block, content):
-    f = open(self.fs.filename)
-  
-  """ Acrescenta a string content ao conteúdo já existente no bloco "block" """
-  def append_to_block(self, block, content):
-    r = Reader(self.fs)
-    block_old_content = r.raw_block_content(block)
-    for line in fileinput.FileInput(self.fs.filename, inplace=1):
-      if line[0:4] == '{:04x}'.format(block):
-        line = line.replace('\n', '')
-        line += f'{content}\n'
-      print(line, end='')
-  
   """ Recebe o bloco dir do diretório que contém o arquivo, recebe a string com
   a entrada na tabela de diretórios e recebe  o objeto do arquivo a ser escrito,
   que contém seu conteúdo """
   def write_file(self, dir, entry, file):
     dir_address = '{:04x}'.format(dir)
-    file_address = '{:04x}'.format(file.first_block)
+    current_block = file.first_block
+    file_address = '{:04x}'.format(current_block)
     for line in fileinput.FileInput(self.fs.filename, inplace=1):
       # escrever a entrada do diretório
       if line[0:4] == dir_address:
         line = line.replace('\n', '')
         line += f'{entry}\n'
       elif line[0:4] == file_address:
-        line = f'{line[0:5]}{file.content}\n'
+        if (current_block != FINAL_BLOCK):
+          current_content = file.content[:4096]
+          line = f'{line[0:5]}{current_content}\n'
+          file.content = file.content[4096:]
+          self.fs.bitmap.map[current_block] = 0
+          if not file.content:
+            next_block = FINAL_BLOCK
+          else:
+            next_block = self.fs.nearest_empty_block(current_block)
+          self.fs.fat.table[current_block] = next_block
+          current_block = next_block
+          file_address = '{:04x}'.format(current_block)
+        else:
+          line = f'{line[:5]}{file.content}\n'
       print(line, end='')
-
+  
+  """ Recebe o bloco onde a entrada está e o nome do arquivo/diretório a ser
+  apagado. Exclui a entrada da unidade e todo o seu conteúdo associado """
+  def erase_file(self, block, file):
+    # caso o arquivo esteja distribuído em vários blocos, apaga todos eles
+    blocks = []
+    file_last_block = file.first_block
+    while (file_last_block != FINAL_BLOCK):
+      blocks.append(file_last_block)
+      file_last_block = self.fs.fat.table[file_last_block]
+    # ordena os blocos para remover na ordem da varredura
+    blocks.sort()
+    block_i = 0
+    hex_address = '{:04x}'.format(block)
+    content_address = '{:04x}'.format(blocks[block_i])
+    for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      if line[:4] == hex_address:
+        line = re.sub(ENTRY_BY_NAME.replace('(name)', file.name), '', line)
+      elif line[:4] == content_address:
+        line = f'{line[:4]} \n'
+        block_i+=1
+        self.fs.fat.table[block_i] = EMPTY_BLOCK
+        self.fs.bitmap.map[block_i] = 1
+        if block_i < len(blocks):
+          content_address = '{:04x}'.format(blocks[block_i])
+      print(line, end='')
