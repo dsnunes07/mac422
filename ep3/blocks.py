@@ -41,10 +41,10 @@ class Reader:
       name = file_splitted[0].replace('^', '')
       size = int(file_splitted[1], 16)
       created_at = file_splitted[2]
-      modified_at = file_splitted[3]
-      accessed_at = file_splitted[4]
+      accessed_at = file_splitted[3]
+      modified_at = file_splitted[4]
       first_block = int(file_splitted[5], 16)
-      file = File(name, size, created_at, modified_at, accessed_at, first_block)
+      file = File(name, size, created_at, accessed_at, modified_at, first_block)
       files.append(file)
     return files
   
@@ -54,10 +54,10 @@ class Reader:
       dir_splitted = dir_string.split('&')
       name = dir_splitted[0].replace('%', '')
       created_at = dir_splitted[1]
-      modified_at = dir_splitted[2]
-      accessed_at = dir_splitted[3]
+      accessed_at = dir_splitted[2]
+      modified_at = dir_splitted[3]
       first_block = int(dir_splitted[4], 16)
-      directory = Directory(name, created_at, modified_at, accessed_at, first_block)
+      directory = Directory(name, created_at, accessed_at, modified_at, first_block)
       dirs.append(directory)
     return dirs
   
@@ -74,7 +74,7 @@ class Reader:
   
   """ Recebe uma string com o caminho de um diretório e retorna uma
   tupla contendo as listas files e dirs, com o conteúdo desse diretório.
-  Se o caminho não existir, retorna None """
+  Se o caminho não existir, retorna listas vazias e -1 como bloco """
   def read_path(self, path):
     # ler tudo da root
     files, dirs = self.read_block(0)
@@ -93,7 +93,7 @@ class Reader:
           path_block = d.first_block
           break
       if (not dir_found):
-        return None, None, path_block
+        return [], [], path_block
     return files, dirs, path_block
 
 class Writer:
@@ -102,8 +102,8 @@ class Writer:
     self.fs = fs
   
   """ Recebe o bloco dir do diretório que contém o arquivo, recebe a string com
-  a entrada na tabela de diretórios e recebe  o objeto do arquivo a ser escrito,
-  que contém seu conteúdo """
+  a entrada na tabela de diretórios e recebe o objeto do arquivo a ser escrito,
+  que contém seu conteúdo. Essa função também atualiza a FAT e o bitmap na memória """
   def write_file(self, dir, entry, file):
     dir_address = '{:04x}'.format(dir)
     current_block = file.first_block
@@ -154,4 +154,12 @@ class Writer:
         self.fs.bitmap.map[block_i] = 1
         if block_i < len(blocks):
           content_address = '{:04x}'.format(blocks[block_i])
+      print(line, end='')
+  
+  def update_entry(self, file, block, new_entry):
+    block_address = '{:04x}'.format(block)
+    for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      if line[:4] == block_address:
+        pattern = ENTRY_BY_NAME.replace('(name)', file.name)
+        line = re.sub(pattern, new_entry, line)
       print(line, end='')

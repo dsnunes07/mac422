@@ -70,6 +70,11 @@ class FileSystem:
     self.bitmap.map[file.first_block] = 0
     w = Writer(self)
     w.write_file(dir_block, entry, file)
+  
+  def update_file_entry(self, block, file):
+    new_entry = self.create_file_entry(file)
+    w = Writer(self)
+    w.update_entry(file, block, new_entry)
 
 class CP:
   
@@ -125,3 +130,38 @@ class CP:
         w.erase_file(self.path_block, file)
         break
 
+class Touch:
+
+  def __init__(self, filepath, fs):
+    self.filepath = filepath
+    self.parent_dir = self._get_parent_dir()
+    self.filename = self._get_filename()
+    self.fs = fs
+  
+  def _get_parent_dir(self):
+    last_slash = self.filepath.rfind('/')
+    return self.filepath[:last_slash]
+  
+  def _get_filename(self):
+    last_slash = self.filepath.rfind('/')
+    return self.filepath[last_slash + 1:]
+  
+  """ Cria um arquivo vazio em filename ou atualiza a data de acesso do arquivo
+  caso ele já exista """
+  def touch(self):
+    timestamp = int(datetime.now().timestamp())
+    r = Reader(self.fs)
+    files, dirs, parent_block = r.read_path(self.parent_dir)
+    if parent_block == -1:
+      print(f'Erro: {self.parent_dir} não existe')
+      return
+    for file in files:
+      if file.name == self.filename:
+        # atualiza o accessed_at do arquivo
+        file.accessed_at = timestamp
+        self.fs.update_file_entry(parent_block, file)
+        return
+    first_block = self.fs.nearest_empty_block(parent_block)
+    file = File(self.filename, 0, timestamp, timestamp, timestamp, first_block)
+    file.set_content('')
+    self.fs.write_file_to_unit(parent_block, file)

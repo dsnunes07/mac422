@@ -1,5 +1,5 @@
 import system_constants as c
-from simulation import CP
+from simulation import CP, Touch
 class Command:
 
   def __init__(self, command, file_system):
@@ -26,7 +26,9 @@ class Command:
     elif (command == c.CAT):
       print('é o cat!')
     elif (command == c.TOUCH):
-      print('é o touch!')
+      file = input_split[1]
+      touch = Touch(file, self.file_system)
+      touch.touch()
     elif (command == c.RM):
       print('é o rm!')
     elif (command == c.LS):
