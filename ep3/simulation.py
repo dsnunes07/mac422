@@ -22,9 +22,13 @@ class FileSystem:
 
   def umount(self):
     if (not self.mounted):
-      print('Nenhum arquivo montado')
+      print('Erro: nenhum arquivo montado')
       return
     print(f'desmontando {self.filename}')
+    w = Writer(self)
+    w.write_fat()
+    w.write_bitmap()
+    print(f'tabela fat e bitmap escritos no arquivo {self.filename}')
     self.fat = None
     self.bitmap = None
     self.mounted = False
