@@ -1,5 +1,5 @@
 import re
-from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK, EMPTY_BLOCK, MAX_BLOCK_LENGTH
+from system_constants import TOTAL_BLOCKS, BLOCK_LIST_IDX, FINAL_BLOCK, EMPTY_BLOCK, MAX_BLOCK_LENGTH, BIT_START_IDX
 from patterns import BLOCK_START, FILE_OBJ, DIR_OBJ, ENTRY_BY_NAME
 from files import File, Directory
 import fileinput
@@ -149,9 +149,9 @@ class Writer:
         line = re.sub(ENTRY_BY_NAME.replace('(name)', file.name), '', line)
       elif line[:4] == content_address:
         line = f'{line[:4]} \n'
+        self.fs.fat.table[blocks[block_i]] = EMPTY_BLOCK
+        self.fs.bitmap.map[blocks[block_i]] = 1
         block_i+=1
-        self.fs.fat.table[block_i] = EMPTY_BLOCK
-        self.fs.bitmap.map[block_i] = 1
         if block_i < len(blocks):
           content_address = '{:04x}'.format(blocks[block_i])
       print(line, end='')
@@ -163,3 +163,9 @@ class Writer:
         pattern = ENTRY_BY_NAME.replace('(name)', file.name)
         line = re.sub(pattern, new_entry, line)
       print(line, end='')
+  
+  def write_fat(self):
+    self.fs.fat.write_table_to_unit()
+  
+  def write_bitmap(self):
+    self.fs.bitmap.write_bitmap_to_unit()
