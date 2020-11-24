@@ -4,7 +4,7 @@ from datetime import datetime
 from fat import FAT
 from bitmap import Bitmap
 from blocks import BlockList, Reader, Writer
-from files import File
+from files import File, Directory
 from system_constants import BLOCK_LIST_IDX, TOTAL_BLOCKS, FINAL_BLOCK
 from patterns import BLOCK_START
 
@@ -24,7 +24,7 @@ class FileSystem:
     if (not self.mounted):
       print('Erro: nenhum arquivo montado')
       return
-    print(f'desmontando {self.filename}')
+    print(f'Desmontando {self.filename}')
     w = Writer(self)
     w.write_fat()
     w.write_bitmap()
@@ -80,6 +80,22 @@ class FileSystem:
     w = Writer(self)
     w.update_entry(file, block, new_entry)
 
+  
+  """ Recebe o bloco do diretório e o objeto do arquivo e cria uma entrada na
+  tabela do diretório para o arquivo dado """
+  def create_dir_entry(self, dir):
+    dirname = dir.name
+    first_block = '{:04x}'.format(dir.first_block)
+    dir_entry = f'%{dirname}&{dir.created_at}&{dir.accessed_at}&{dir.modified_at}&{first_block}|'
+    return dir_entry
+  
+  def write_dir_to_unit(self, dir_block, dir):
+    entry = self.create_dir_entry(dir)
+    self.fat.table[dir.first_block] = FINAL_BLOCK
+    self.bitmap.map[dir.first_block] = 0
+    w = Writer(self)
+    w.write_directory(dir_block, entry)
+
 class CP:
   
   def __init__(self, origin, destiny, fs):
@@ -108,7 +124,7 @@ class CP:
     files, dirs, block = r.read_path(self.destiny_path)
     # verifica se o diretório de destino existe
     if block == -1:
-      print(f'erro: diretório {self.destiny_path} não existe!'),
+      print(f'Erro: diretório {self.destiny_path} não existe!'),
       return
     # verifica se um arquivo com o mesmo nome já existe no diretório e o apaga caso exista
     self.path_block = block
@@ -125,8 +141,7 @@ class CP:
     timestamp = int(datetime.now().timestamp())
     file = File(self.destiny, 0, timestamp, timestamp, timestamp, first_block)
     file.set_content(self.content)
-    return file
-  
+    return file  
   def remove_duplicates(self, files):
     for file in files:
       if file.name == self.destiny_name:
@@ -141,15 +156,15 @@ class Touch:
     self.parent_dir = self._get_parent_dir()
     self.filename = self._get_filename()
     self.fs = fs
-  
+
   def _get_parent_dir(self):
     last_slash = self.filepath.rfind('/')
     return self.filepath[:last_slash]
-  
+
   def _get_filename(self):
     last_slash = self.filepath.rfind('/')
     return self.filepath[last_slash + 1:]
-  
+
   """ Cria um arquivo vazio em filename ou atualiza a data de acesso do arquivo
   caso ele já exista """
   def touch(self):
@@ -169,3 +184,45 @@ class Touch:
     file = File(self.filename, 0, timestamp, timestamp, timestamp, first_block)
     file.set_content('')
     self.fs.write_file_to_unit(parent_block, file)
+
+class MKDIR:
+
+  def __init__(self, dirpath, fs):
+    self.dirpath = dirpath
+    self.parent_dir = self._get_parent_dir()
+    self.dirname = self._get_dirname()
+    self.fs = fs
+
+  def _get_parent_dir(self):
+    last_slash = self.dirpath.rfind('/')
+    return self.dirpath[:last_slash]
+  
+  def _get_dirname(self):
+    last_slash = self.dirpath.rfind('/')
+    return self.dirpath[last_slash + 1:]
+  
+  """ Cria um diretório vazio """
+  def mkdir(self):
+    # inicia o objeto de leitura
+    r = Reader(self.fs)
+    # lê o conteúdo da root
+    files, dirs, parent_block = r.read_path(self.parent_dir)
+    # encontra o timestamp
+    timestamp = int(datetime.now().timestamp())
+    # verifica se "destino" existe
+    if parent_block == -1:
+      print(f'Erro: diretório {self.parent_dir} não existe!'),
+      return
+    #checa se há algum diretório com o mesmo nome
+    for dir in dirs:
+      if dir.name == self.dirname:
+        print(f'Erro: diretório {self.parent_dir} já existe! Não é possível criar um diretório com o mesmo nome'),
+        return
+    #checa se há algum arquivo com o mesmo nome
+    for file in files:
+      if file.name == self.dirname:
+        print(f'Erro: arquivo {self.parent_dir} já existe! Não é possível criar um diretório com o mesmo nome'),
+        return
+    first_block = self.fs.nearest_empty_block(parent_block)
+    dir = Directory(self.dirname, timestamp, timestamp, timestamp, first_block)
+    self.fs.write_dir_to_unit(parent_block, dir)

@@ -1,5 +1,6 @@
 import system_constants as c
-from simulation import CP, Touch
+from simulation import CP, Touch, MKDIR
+
 class Command:
 
   def __init__(self, command, file_system):
@@ -20,7 +21,9 @@ class Command:
       cp = CP(origin, destiny, self.file_system)
       cp.cp()
     elif (command == c.MKDIR):
-      print('é o mkdir')
+      destiny = input_split[1]
+      mkdir = MKDIR(destiny, self.file_system)
+      mkdir.mkdir()
     elif (command == c.RMDIR):
       print('é o rmdir!')
     elif (command == c.CAT):
