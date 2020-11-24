@@ -149,6 +149,42 @@ class CP:
         w.erase_file(self.path_block, file)
         break
 
+class Touch:
+
+  def __init__(self, filepath, fs):
+    self.filepath = filepath
+    self.parent_dir = self._get_parent_dir()
+    self.filename = self._get_filename()
+    self.fs = fs
+
+  def _get_parent_dir(self):
+    last_slash = self.filepath.rfind('/')
+    return self.filepath[:last_slash]
+
+  def _get_filename(self):
+    last_slash = self.filepath.rfind('/')
+    return self.filepath[last_slash + 1:]
+
+  """ Cria um arquivo vazio em filename ou atualiza a data de acesso do arquivo
+  caso ele já exista """
+  def touch(self):
+    timestamp = int(datetime.now().timestamp())
+    r = Reader(self.fs)
+    files, dirs, parent_block = r.read_path(self.parent_dir)
+    if parent_block == -1:
+      print(f'Erro: {self.parent_dir} não existe')
+      return
+    for file in files:
+      if file.name == self.filename:
+        # atualiza o accessed_at do arquivo
+        file.accessed_at = timestamp
+        self.fs.update_file_entry(parent_block, file)
+        return
+    first_block = self.fs.nearest_empty_block(parent_block)
+    file = File(self.filename, 0, timestamp, timestamp, timestamp, first_block)
+    file.set_content('')
+    self.fs.write_file_to_unit(parent_block, file)
+
 class MKDIR:
 
   def __init__(self, dirpath, fs):
@@ -186,30 +222,3 @@ class MKDIR:
     first_block = self.fs.nearest_empty_block(parent_block)
     dir = Directory(self.dirname, timestamp, timestamp, timestamp, first_block)
     self.fs.write_dir_to_unit(parent_block, dir)
-
-class MKDIR:
-
-    def __init__(self, destiny, fs):
-      self.destiny = destiny
-      self.destiny_path = self._get_destiny_path()
-      self.fs = fs
-    
-    def mkdir(self):
-      print('to aqui testando!')
-          # inicia o objeto de leitura
-      r = Reader(self.fs)
-      # lê o conteúdo da root
-      dirs, files, block = r.read_path(self.destiny_path)
-      # verifica se "destino" existe
-      print('files = ', files)
-      print('dirs = ', dirs)
-      print('block = ', block)
-      if block == -1:
-        print(f'erro: diretório {self.destiny_path} não existe!'),
-        return
-      self.path_block = block
-
-        
-    def _get_destiny_path(self):
-      last_slash = self.destiny.rfind('/')
-      return self.destiny[:last_slash]
