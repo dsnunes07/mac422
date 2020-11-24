@@ -125,3 +125,33 @@ class CP:
         w.erase_file(self.path_block, file)
         break
 
+class Touch:
+
+  def __init__(self, filepath, fs):
+    self.filepath = filepath
+    self.parent_dir = self._get_parent_dir()
+    self.filename = self._get_filename()
+    self.fs = fs
+  
+  def _get_parent_dir(self):
+    last_slash = self.filepath.rfind('/')
+    return self.filepath[:last_slash]
+  
+  def _get_filename(self):
+    last_slash = self.filepath.rfind('/')
+    return self.filepath[last_slash:]
+  
+  """ Cria um arquivo vazio em filename ou atualiza a data de acesso do arquivo
+  caso ele já exista """
+  def touch(self):
+    timestamp = int(datetime.now().timestamp())
+    r = Reader(self.fs)
+    files, dirs, block = r.read_path(self.parent_dir)
+    for file in files:
+      if file.name == self.filename:
+        # atualiza o timestamp da entrada
+        return
+    first_block = self.fs.nearest_empty_block(block)
+    file = File(self.filename, 0, timestamp, timestamp, timestamp, first_block)
+    file.set_content('')
+    self.fs.write_file_to_unit(block, file)
