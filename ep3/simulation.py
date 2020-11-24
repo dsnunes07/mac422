@@ -76,6 +76,7 @@ class CP:
   def __init__(self, origin, destiny, fs):
     self.origin = origin
     self.destiny = destiny
+    self.destiny_name = self._get_destiny_name()
     self.destiny_path = self._get_destiny_path()
     self.fs = fs
     self.content = self.read_origin_content()
@@ -88,17 +89,21 @@ class CP:
     last_slash = self.destiny.rfind('/')
     return self.destiny[:last_slash]
   
+  def _get_destiny_name(self):
+    return self.destiny.split('/')[-1]
+  
   def cp(self):
     # inicia o objeto de leitura
     r = Reader(self.fs)
     # lê o conteúdo da root
     files, dirs, block = r.read_path(self.destiny_path)
-    # verifica se "destino" existe
+    # verifica se o diretório de destino existe
     if block == -1:
       print(f'erro: diretório {self.destiny_path} não existe!'),
       return
+    # verifica se um arquivo com o mesmo nome já existe no diretório e o apaga caso exista
     self.path_block = block
-    w = Writer(self.fs)
+    self.remove_duplicates(files)
     block_content = r.raw_block_content(block)
     block_content = re.sub(BLOCK_START, block_content, '')
     destiny = self.destiny_file()
@@ -112,3 +117,11 @@ class CP:
     file = File(self.destiny, 0, timestamp, timestamp, timestamp, first_block)
     file.set_content(self.content)
     return file
+  
+  def remove_duplicates(self, files):
+    for file in files:
+      if file.name == self.destiny_name:
+        w = Writer(self.fs)
+        w.erase_file(self.path_block, file)
+        break
+
