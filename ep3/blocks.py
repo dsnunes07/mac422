@@ -74,7 +74,7 @@ class Reader:
   
   """ Recebe uma string com o caminho de um diretório e retorna uma
   tupla contendo as listas files e dirs, com o conteúdo desse diretório.
-  Se o caminho não existir, retorna None """
+  Se o caminho não existir, retorna listas vazias e -1 como bloco """
   def read_path(self, path):
     # ler tudo da root
     files, dirs = self.read_block(0)
@@ -93,7 +93,7 @@ class Reader:
           path_block = d.first_block
           break
       if (not dir_found):
-        return None, None, path_block
+        return [], [], path_block
     return files, dirs, path_block
 
 class Writer:
@@ -102,8 +102,8 @@ class Writer:
     self.fs = fs
   
   """ Recebe o bloco dir do diretório que contém o arquivo, recebe a string com
-  a entrada na tabela de diretórios e recebe  o objeto do arquivo a ser escrito,
-  que contém seu conteúdo """
+  a entrada na tabela de diretórios e recebe o objeto do arquivo a ser escrito,
+  que contém seu conteúdo. Essa função também atualiza a FAT e o bitmap na memória """
   def write_file(self, dir, entry, file):
     dir_address = '{:04x}'.format(dir)
     current_block = file.first_block
