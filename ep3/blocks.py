@@ -149,9 +149,9 @@ class Writer:
         line = re.sub(ENTRY_BY_NAME.replace('(name)', file.name), '', line)
       elif line[:4] == content_address:
         line = f'{line[:4]} \n'
+        self.fs.fat.table[blocks[block_i]] = EMPTY_BLOCK
+        self.fs.bitmap.map[blocks[block_i]] = 1
         block_i+=1
-        self.fs.fat.table[block_i] = EMPTY_BLOCK
-        self.fs.bitmap.map[block_i] = 1
         if block_i < len(blocks):
           content_address = '{:04x}'.format(blocks[block_i])
       print(line, end='')
