@@ -125,8 +125,7 @@ class CP:
     timestamp = int(datetime.now().timestamp())
     file = File(self.destiny, 0, timestamp, timestamp, timestamp, first_block)
     file.set_content(self.content)
-    return file
-  
+    return file  
   def remove_duplicates(self, files):
     for file in files:
       if file.name == self.destiny_name:
@@ -169,3 +168,30 @@ class Touch:
     file = File(self.filename, 0, timestamp, timestamp, timestamp, first_block)
     file.set_content('')
     self.fs.write_file_to_unit(parent_block, file)
+
+class MKDIR:
+
+    def __init__(self, destiny, fs):
+      self.destiny = destiny
+      self.destiny_path = self._get_destiny_path()
+      self.fs = fs
+    
+    def mkdir(self):
+      print('to aqui testando!')
+          # inicia o objeto de leitura
+      r = Reader(self.fs)
+      # lê o conteúdo da root
+      dirs, files, block = r.read_path(self.destiny_path)
+      # verifica se "destino" existe
+      print('files = ', files)
+      print('dirs = ', dirs)
+      print('block = ', block)
+      if block == -1:
+        print(f'erro: diretório {self.destiny_path} não existe!'),
+        return
+      self.path_block = block
+
+        
+    def _get_destiny_path(self):
+      last_slash = self.destiny.rfind('/')
+      return self.destiny[:last_slash]
