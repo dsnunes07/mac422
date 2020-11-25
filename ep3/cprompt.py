@@ -1,5 +1,5 @@
 import system_constants as c
-from simulation import CP, Touch, MKDIR, CAT, LS
+from simulation import CP, Touch, MKDIR, CAT, LS, RM
 
 class Command:
 
@@ -34,7 +34,9 @@ class Command:
       touch = Touch(file, self.file_system)
       touch.touch()
     elif (command == c.RM):
-      print('é o rm!')
+      path = input_split[1]
+      rm = RM(path, self.file_system)
+      rm.rm()
     elif (command == c.LS):
       path = input_split[1]
       ls = LS(path, self.file_system)
