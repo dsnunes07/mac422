@@ -40,9 +40,9 @@ class Reader:
       file_splitted = file_string.split('&')
       name = file_splitted[0].replace('^', '')
       size = int(file_splitted[1], 16)
-      created_at = file_splitted[2]
-      accessed_at = file_splitted[3]
-      modified_at = file_splitted[4]
+      created_at = int(file_splitted[2])
+      accessed_at = int(file_splitted[3])
+      modified_at = int(file_splitted[4])
       first_block = int(file_splitted[5], 16)
       file = File(name, size, created_at, accessed_at, modified_at, first_block)
       files.append(file)
@@ -53,9 +53,9 @@ class Reader:
     for dir_string in re.findall(pattern=DIR_OBJ, string=data):
       dir_splitted = dir_string.split('&')
       name = dir_splitted[0].replace('%', '')
-      created_at = dir_splitted[1]
-      accessed_at = dir_splitted[2]
-      modified_at = dir_splitted[3]
+      created_at = int(dir_splitted[1])
+      accessed_at = int(dir_splitted[2])
+      modified_at = int(dir_splitted[3])
       first_block = int(dir_splitted[4], 16)
       directory = Directory(name, created_at, accessed_at, modified_at, first_block)
       dirs.append(directory)
@@ -80,7 +80,7 @@ class Reader:
     files, dirs = self.read_block(0)
     path_split = path.split('/')
     path_block = -1
-    if (len(path_split) == 1):
+    if (path == '/' or len(path_split) == 1):
       path_block = 0
       return files, dirs, path_block
     # buscar os diretórios
