@@ -1,5 +1,5 @@
 import system_constants as c
-from simulation import CP, Touch, MKDIR, CAT
+from simulation import CP, Touch, MKDIR, CAT, LS
 
 class Command:
 
@@ -36,7 +36,9 @@ class Command:
     elif (command == c.RM):
       print('é o rm!')
     elif (command == c.LS):
-      print('é o ls!')
+      path = input_split[1]
+      ls = LS(path, self.file_system)
+      ls.ls()
     elif (command == c.FIND):
       print('é o find!')
     elif (command == c.DF):
