@@ -1,5 +1,5 @@
 import system_constants as c
-from simulation import CP, Touch, MKDIR
+from simulation import CP, Touch, MKDIR, CAT
 
 class Command:
 
@@ -27,7 +27,8 @@ class Command:
     elif (command == c.RMDIR):
       print('é o rmdir!')
     elif (command == c.CAT):
-      print('é o cat!')
+      cat = CAT(input_split[1], self.file_system)
+      cat.cat()
     elif (command == c.TOUCH):
       file = input_split[1]
       touch = Touch(file, self.file_system)
