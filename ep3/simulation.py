@@ -187,6 +187,7 @@ class Touch:
       if file.name == self.filename:
         # atualiza o accessed_at do arquivo
         file.accessed_at = timestamp
+        file.modified_at = timestamp
         self.fs.update_file_entry(parent_block, file)
         return
     
@@ -194,6 +195,7 @@ class Touch:
       if dir.name == self.filename:
         # atualiza o accessed_at do diretório
         dir.accessed_at = timestamp
+        dir.modified_at = timestamp
         self.fs.update_dir_entry(parent_block, dir)
         return
 
@@ -278,3 +280,45 @@ class CAT:
         f =  file
         break
     return f
+
+class LS:
+
+  def __init__(self, path, fs):
+    self.path = path
+    self.fs = fs
+  
+  def ls(self):
+    files, dirs, block = self.get_path_content()
+    if (block == -1):
+      print(f'Erro: diretório {self.path} não encontrado')
+      return
+    files.extend(dirs)
+    files.sort(key=self.by_name)
+    self.print_output(files)
+  
+  def print_output(self, path_content):
+    for content in path_content:
+      if content.__class__ == File:
+        self.print_file_info(content)
+      elif content.__class__ == Directory:
+        self.print_dir_info(content)
+  
+  def print_file_info(self, file):
+    print(f'ARQUIVO   {self.timestring(file.modified_at)} {file.name} {file.size} B')
+  
+  def print_dir_info(self, dir):
+    print(f'DIRETÓRIO {self.timestring(dir.modified_at)} {dir.name}')
+  
+  def timestring(self, timestamp):
+    modified_at = datetime.fromtimestamp(timestamp)
+    return modified_at.strftime("%d %B %Y %H:%M:%S")
+  
+  def by_name(self, obj):
+    return obj.name
+  
+  def get_path_content(self):
+    path = self.path
+    if (len(path) > 1 and path[-1] == '/'):
+      path = path[:-1]
+    r = Reader(self.fs)
+    return r.read_path(path)
