@@ -243,3 +243,38 @@ class MKDIR:
     first_block = self.fs.nearest_empty_block(parent_block)
     dir = Directory(self.dirname, timestamp, timestamp, timestamp, first_block)
     self.fs.write_dir_to_unit(parent_block, dir)
+
+class CAT:
+
+  def __init__(self, path, fs):
+    self.path = path
+    self.fs = fs
+    self.parent_dir = self._get_parent_dir()
+    self.file_name = self._get_filename()
+  
+  def _get_parent_dir(self):
+    last_slash = self.path.rfind('/')
+    return self.path[:last_slash]
+  
+  def _get_filename(self):
+    last_slash = self.path.rfind('/')
+    return self.path[last_slash + 1:]
+  
+  def cat(self):
+    file = self.locate_file()
+    if not file:
+      print(f'Erro: {self.file_name} não encontrado')
+      return
+    r = Reader(self.fs)
+    r.print_file_content(file)
+    print()
+  
+  def locate_file(self):
+    r = Reader(self.fs)
+    f = None
+    files, _, _ = r.read_path(self.parent_dir)
+    for file in files:
+      if file.name == self.file_name:
+        f =  file
+        break
+    return f
