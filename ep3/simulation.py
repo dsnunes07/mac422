@@ -265,7 +265,7 @@ class CAT:
   def cat(self):
     file = self.locate_file()
     if not file:
-      print(f'Erro: {self.file_name} não encontrado')
+      print(f'Erro: arquivo regular {self.file_name} não encontrado')
       return
     r = Reader(self.fs)
     r.print_file_content(file)
@@ -290,7 +290,7 @@ class LS:
   def ls(self):
     files, dirs, block = self.get_path_content()
     if (block == -1):
-      print(f'Erro: diretório {self.path} não encontrado')
+      print(f'Erro: não há diretório em {self.path}')
       return
     files.extend(dirs)
     files.sort(key=self.by_name)
@@ -322,3 +322,37 @@ class LS:
       path = path[:-1]
     r = Reader(self.fs)
     return r.read_path(path)
+
+class RM:
+
+  def __init__(self, path, fs):
+    self.path = path
+    self.fs = fs
+    self.filename = self._get_filename()
+    self.parent_dir = self._get_parent_dir()
+  
+  def _get_filename(self):
+    last_slash = self.path.rfind('/')
+    return self.path[last_slash + 1:]
+  
+  def _get_parent_dir(self):
+    last_slash = self.path.rfind('/')
+    return self.path[:last_slash]
+  
+  def rm(self):
+    r = Reader(self.fs)
+    files, _, block = r.read_path(self.parent_dir)
+    w = Writer(self.fs)
+    f = self.locate_file(files)
+    if not f:
+      print(f'Erro: não há arquivo regular em {self.path}')
+      return
+    w.erase_file(block, f)
+  
+  def locate_file(self, files):
+    f = None
+    for file in files:
+      if file.name == self.filename:
+        f =  file
+        break
+    return f
