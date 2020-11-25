@@ -1,0 +1,4 @@
+mount unidade
+cp experimentos/arquivos/1mega /1mega
+umount
+sai

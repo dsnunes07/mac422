@@ -1,5 +1,6 @@
 import system_constants as c
 from simulation import CP, Touch, MKDIR, CAT, LS, RM
+import time
 
 class Command:
 
@@ -19,7 +20,10 @@ class Command:
       origin = input_split[1]
       destiny = input_split[2]
       cp = CP(origin, destiny, self.file_system)
+      start = time.time()
       cp.cp()
+      end = time.time()
+      print(f'Tempo decorrido: {end - start}s')
     elif (command == c.MKDIR):
       destiny = input_split[1]
       mkdir = MKDIR(destiny, self.file_system)
@@ -36,7 +40,10 @@ class Command:
     elif (command == c.RM):
       path = input_split[1]
       rm = RM(path, self.file_system)
+      start = time.time()
       rm.rm()
+      end = time.time()
+      print(f'Tempo decorrido: {end-start}s')
     elif (command == c.LS):
       path = input_split[1]
       ls = LS(path, self.file_system)
