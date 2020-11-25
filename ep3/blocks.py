@@ -95,6 +95,19 @@ class Reader:
       if (not dir_found):
         return [], [], path_block
     return files, dirs, path_block
+  
+  def print_file_content(self, file):
+    file_address = '{:04x}'.format(file.first_block)
+    block = file.first_block
+    f = open(self.fs.filename, 'r')
+    f.seek(BLOCK_LIST_IDX)
+    while (block != FINAL_BLOCK):  
+      line = f.readline()
+      if line[0:4] == file_address:
+        print(line[5:].rstrip(), end='')
+        f.seek(BLOCK_LIST_IDX)
+        block = self.fs.fat.table[block]
+    f.close()
 
 class Writer:
 
@@ -154,7 +167,8 @@ class Writer:
         block_i+=1
         if block_i < len(blocks):
           content_address = '{:04x}'.format(blocks[block_i])
-      print(line, end='')  
+      print(line, end='')
+  
   def update_entry(self, file, block, new_entry):
     block_address = '{:04x}'.format(block)
     for line in fileinput.FileInput(self.fs.filename, inplace=1):
