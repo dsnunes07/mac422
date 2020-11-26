@@ -157,7 +157,8 @@ class Writer:
   a entrada na tabela de diretórios e recebe o objeto do arquivo a ser escrito,
   que contém seu conteúdo. Essa função também atualiza a FAT e o bitmap na memória """
   def write_file(self, dir, entry, file):
-    dir_address = '{:04x}'.format(dir)
+    last_block = self.update_dir_last_block(dir, entry)
+    dir_address = '{:04x}'.format(last_block)
     current_block = file.first_block
     file_address = '{:04x}'.format(current_block)
     for line in fileinput.FileInput(self.fs.filename, inplace=1):
@@ -225,17 +226,20 @@ class Writer:
   """ Recebe o first_block do diretório pai onde deve ocorrer a escrita e a 
   entrada do novo diretório (no formato %dirname&timestamp&timestamp&timestamp&first_block) a ser criado. """
   def write_directory(self, parent_block, entry):
+    """ Tá comentado pq tô testando a função update ainda """
     # pega o último bloco do diretório pai (em teoria, é onde é possível escrever as entradas)
-    last_block = self.get_last_block(parent_block)
+    # last_block = self.get_last_block(parent_block)
+    # dir_address = '{:04x}'.format(last_block)
+    # # se não cabe mais entradas nesse bloco, pega o próximo bloco vazio, atualiza a tabela FAT, o BITMAP
+    # # e o endereço onde a entrada deve ser escrita
+    # if not self.check_entry_fits_block(last_block, entry):
+    #   next_block = self.fs.nearest_empty_block(last_block)
+    #   self.fs.bitmap.map[next_block] = 0
+    #   self.fs.fat.table[last_block] = next_block
+    #   self.fs.fat.table[next_block] = FINAL_BLOCK
+    #   dir_address = '{:04x}'.format(next_block)
+    last_block = self.update_dir_last_block(parent_block, entry)
     dir_address = '{:04x}'.format(last_block)
-    # se não cabe mais entradas nesse bloco, pega o próximo bloco vazio, atualiza a tabela FAT, o BITMAP
-    # e o endereço onde a entrada deve ser escrita
-    if not self.check_entry_fits_block(last_block, entry):
-      next_block = self.fs.nearest_empty_block(last_block)
-      self.fs.bitmap.map[next_block] = 0
-      self.fs.fat.table[last_block] = next_block
-      self.fs.fat.table[next_block] = FINAL_BLOCK
-      dir_address = '{:04x}'.format(next_block)
     # Escreve a entrada no sistema de arquivos.
     for line in fileinput.FileInput(self.fs.filename, inplace=1):
       if line[0:4] == dir_address:
@@ -243,18 +247,15 @@ class Writer:
           line += f'{entry}\n'
       print(line, end='')
 
-  """ Recebe bloco pai, entrada e a linha onde deve ser escrita a nova entrada (arquivo/diretório) no diretório pai; checa se
-  é possível escrevê-la no bloco e, caso sim, a escreve. Se não, aloca um novo bloco para continuação do diretório e escreve a entrada
-  no novo bloco. """
-  def write_entry_into_directory(self, parent_block, entry, line):
-    dir_address = '{:04x}'.format(parent_block)
-    if line[0:4] == dir_address:
-      if self.check_entry_fits_block(parent_block, entry):
-        line = line.replace('\n', '')
-        line += f'{entry}\n'
-      # else:
-        # next_block = self.fs.nearest_empty_block(parent_block)
-        # dir_address = '{:04x}'.format(next_block)
-        # self.fs.bitmap.map[next_block] = 0
-        # self.fs.fat.table[parent_block] = next_block
-    print(line, end='')
+  def update_dir_last_block(self, parent_block, entry):
+     # pega o último bloco do diretório pai (em teoria, é onde é possível escrever as entradas)
+    last_block = self.get_last_block(parent_block)
+    # se não cabe mais entradas nesse bloco, pega o próximo bloco vazio, atualiza a tabela FAT, o BITMAP
+    # e o endereço onde a entrada deve ser escrita
+    if not self.check_entry_fits_block(last_block, entry):
+      next_block = self.fs.nearest_empty_block(last_block)
+      self.fs.bitmap.map[next_block] = 0
+      self.fs.fat.table[last_block] = next_block
+      self.fs.fat.table[next_block] = FINAL_BLOCK
+      last_block = next_block
+    return last_block 
