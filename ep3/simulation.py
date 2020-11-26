@@ -246,6 +246,7 @@ class MKDIR:
     dir = Directory(self.dirname, timestamp, timestamp, timestamp, first_block)
     self.fs.write_dir_to_unit(parent_block, dir)
 
+
 class CAT:
 
   def __init__(self, path, fs):
