@@ -389,9 +389,16 @@ class RMDIR:
   def get_dirname(self, dirpath):
     last_slash = dirpath.rfind('/')
     return dirpath[last_slash + 1:]
+  
+  # def check_path(self):
+  #   r = Reader(self.fs)
+  #   _, _, block = r.read_path(self.dirpath)
+  #   print ("o Check deu", block != -1)
+  #   return block != -1
 
   def rmdir(self):
     w = Writer(self.fs)
+    # if self.check_path():
     # encontro os first_blocks dos blocos a serem removidos
     first_blocks_to_remove = self.get_blocks_to_remove_rec(self.dirpath)
     print("first_blocks dos arquivos a serem removidos: ", first_blocks_to_remove)
@@ -405,17 +412,21 @@ class RMDIR:
     print("todos os blocos a serem removidos estão aqui: ", all_blocks_to_remove)
     first_blocks_to_remove.clear()
     all_blocks_to_remove.clear()
-
+    # else:
+    #   print('Erro! path não encontrado')
 
   """ Função recursiva que percorre todos os diretórios (a partir do diretório pai), e retorna um vetor com 
   todos os blocos ocupados pelos arquivos acessados """
   def get_blocks_to_remove_rec(self, dirpath, blocks=[]):
     r = Reader(self.fs)
     files, dirs, block = r.read_path(dirpath)
+    # if block == -1:
+    #   print(f'Erro: diretório {dirpath} não existe!'),
+    #   return
     blocks.append(block)
     dirname = self.get_dirname(dirpath)
     print("\n+++ Iniciando RMDIR do (", dirname, ") +++")
-    print("(atual estado dos blocos=",blocks,')', sep='')
+    print("(atual estado dos blocos=", blocks, ')', sep='')
     print("files=", end=" ")
     if files:
       for file in files:
