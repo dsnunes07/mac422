@@ -374,3 +374,69 @@ class DF:
     print(f'Quantidade de diretórios: {self.dirs}')
     print(f'Quantidade de arquivos: {self.files}')
     
+class RMDIR:
+
+  def __init__(self, dirpath, fs):
+    self.dirpath = dirpath
+    self.parent_dir = self._get_parent_dir()
+    self.dirname = self.get_dirname(dirpath)
+    self.fs = fs
+
+  def _get_parent_dir(self):
+    last_slash = self.dirpath.rfind('/')
+    return self.dirpath[:last_slash]
+  
+  def get_dirname(self, dirpath):
+    last_slash = dirpath.rfind('/')
+    return dirpath[last_slash + 1:]
+
+  def rmdir(self):
+    w = Writer(self.fs)
+    # encontro os first_blocks dos blocos a serem removidos
+    first_blocks_to_remove = self.get_blocks_to_remove_rec(self.dirpath)
+    print("first_blocks dos arquivos a serem removidos: ", first_blocks_to_remove)
+    all_blocks_to_remove = []
+    # para cada first_block, encontro os blocos subjacentes e guardo tudo num único vetor all_blocks_to_remove
+    for first_block in first_blocks_to_remove:
+      print("Pegando os nexts do bloco", first_block, ":")
+      more_blocks = w.get_all_blocks(first_block)
+      all_blocks_to_remove.append(more_blocks)
+    all_blocks_to_remove.sort()
+    print("todos os blocos a serem removidos estão aqui: ", all_blocks_to_remove)
+    first_blocks_to_remove.clear()
+    all_blocks_to_remove.clear()
+
+
+  """ Função recursiva que percorre todos os diretórios (a partir do diretório pai), e retorna um vetor com 
+  todos os blocos ocupados pelos arquivos acessados """
+  def get_blocks_to_remove_rec(self, dirpath, blocks=[]):
+    r = Reader(self.fs)
+    files, dirs, block = r.read_path(dirpath)
+    blocks.append(block)
+    dirname = self.get_dirname(dirpath)
+    print("\n+++ Iniciando RMDIR do (", dirname, ") +++")
+    print("(atual estado dos blocos=",blocks,')', sep='')
+    print("files=", end=" ")
+    if files:
+      for file in files:
+        print(file.name, end=" - ")
+        blocks.append(file.first_block)
+    else:
+      print('[]', end='')
+    print("\ndirs=", end=" ")
+    if dirs:
+      for dir in dirs:
+        print(dir.name, end=" - ")
+        if dirpath != '/':
+          child_path = dirpath + '/' + dir.name 
+        else:
+          child_path = dirpath + dir.name 
+        print('-> tentando entrar no ', child_path)
+        blocks = self.get_blocks_to_remove_rec(child_path, blocks)
+    else:
+      print('[]', end='')
+    print("--- Encerrando RMDIR do (", dirname, ") --- \n")
+
+    return blocks
+    
+    

@@ -146,13 +146,25 @@ class Writer:
     raw_content = r.raw_block_content(block_number)
     return (len(raw_content) + len(entry)) < 4096
   
+  """ Dado o primeiro bloco, retorna o último bloco do arquivo """
   def get_last_block(self, parent_block):
     end = parent_block
     while (end != FINAL_BLOCK):
       last_block = end
       end = self.fs.fat.table[last_block]
     return last_block
-  
+
+  """ Dado o primeiro bloco, retorna um vetor com todos os blocos do arquivo"""
+  def get_all_blocks(self, parent_block):
+    all_blocks = []
+    end = parent_block
+    while (end != FINAL_BLOCK):
+      last_block = end
+      all_blocks.append(last_block)
+      end = self.fs.fat.table[last_block]
+    print("Achei todos estes: ", all_blocks)
+    return all_blocks
+
   """ Recebe o bloco dir do diretório que contém o arquivo, recebe a string com
   a entrada na tabela de diretórios e recebe o objeto do arquivo a ser escrito,
   que contém seu conteúdo. Essa função também atualiza a FAT e o bitmap na memória """
