@@ -356,3 +356,20 @@ class RM:
         f =  file
         break
     return f
+
+class DF:
+
+  def __init__(self, fs):
+    self.fs = fs
+  
+  def df(self):
+    r = Reader(self.fs)
+    self.free, self.wasted, self.dirs, self.files = r.read_unit_stats()
+    self.print_stats()
+  
+  def print_stats(self):
+    print(f'Espaço livre: {self.free}B')
+    print(f'Espaço desperdiçado: {self.wasted}B')
+    print(f'Quantidade de diretórios: {self.dirs}')
+    print(f'Quantidade de arquivos: {self.files}')
+    
