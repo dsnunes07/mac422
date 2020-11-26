@@ -224,20 +224,9 @@ class Writer:
     self.fs.bitmap.write_bitmap_to_unit()
 
   """ Recebe o first_block do diretório pai onde deve ocorrer a escrita e a 
-  entrada do novo diretório (no formato %dirname&timestamp&timestamp&timestamp&first_block) a ser criado. """
+  entrada do novo diretório (no formato %dirname&timestamp&timestamp&timestamp&first_block) a ser criado """
   def write_directory(self, parent_block, entry):
-    """ Tá comentado pq tô testando a função update ainda """
-    # pega o último bloco do diretório pai (em teoria, é onde é possível escrever as entradas)
-    # last_block = self.get_last_block(parent_block)
-    # dir_address = '{:04x}'.format(last_block)
-    # # se não cabe mais entradas nesse bloco, pega o próximo bloco vazio, atualiza a tabela FAT, o BITMAP
-    # # e o endereço onde a entrada deve ser escrita
-    # if not self.check_entry_fits_block(last_block, entry):
-    #   next_block = self.fs.nearest_empty_block(last_block)
-    #   self.fs.bitmap.map[next_block] = 0
-    #   self.fs.fat.table[last_block] = next_block
-    #   self.fs.fat.table[next_block] = FINAL_BLOCK
-    #   dir_address = '{:04x}'.format(next_block)
+    # Encontra o último bloco do diretório
     last_block = self.update_dir_last_block(parent_block, entry)
     dir_address = '{:04x}'.format(last_block)
     # Escreve a entrada no sistema de arquivos.
