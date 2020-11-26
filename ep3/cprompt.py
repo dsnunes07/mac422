@@ -1,5 +1,5 @@
 import system_constants as c
-from simulation import CP, Touch, MKDIR, CAT, LS, RM
+from simulation import CP, Touch, MKDIR, CAT, LS, RM, DF
 
 class Command:
 
@@ -44,7 +44,8 @@ class Command:
     elif (command == c.FIND):
       print('é o find!')
     elif (command == c.DF):
-      print('é o df!')
+      df = DF(self.file_system)
+      df.df()
     elif (command == c.UMOUNT):
       self.file_system.umount()
     elif (command == c.SAI):
