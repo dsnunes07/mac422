@@ -108,6 +108,27 @@ class Reader:
         f.seek(BLOCK_LIST_IDX)
         block = self.fs.fat.table[block]
     f.close()
+  
+  """ Extrai estatísticas (espaço livre, desperdiçado e quantidade de arquivos e
+  diretórios) da unidade """
+  def read_unit_stats(self):
+    f = open(self.fs.filename, 'r')
+    f.seek(BLOCK_LIST_IDX)
+    line = f.readline().rstrip()
+    free_space = 0
+    wasted_space = 0
+    n_dirs = 0
+    n_files = 0
+    while (line != ''):
+      address_int = int(line[0:4], 16)
+      if self.fs.bitmap.map[address_int] == 1:
+        free_space += MAX_BLOCK_LENGTH
+      else:
+        wasted_space += (MAX_BLOCK_LENGTH - len(line[5:]))
+        n_dirs += len(re.findall(DIR_OBJ, line))
+        n_files += len(re.findall(FILE_OBJ, line))
+      line = f.readline().rstrip()
+    return free_space, wasted_space, n_dirs, n_files
 
 class Writer:
 
