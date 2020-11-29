@@ -399,6 +399,7 @@ class RMDIR:
   def rmdir(self):
     # w = Writer(self.fs)
     r = Reader(self.fs)
+    _, _, parent_block = r.read_path(self.parent_dir)
     # if self.check_path():
     # encontro os first_blocks dos blocos a serem removidos
     first_blocks_to_remove = self.get_blocks_to_remove_rec(self.dirpath)
@@ -411,7 +412,7 @@ class RMDIR:
     all_blocks_to_remove.sort()
     print("todos os blocos a serem removidos estão aqui: ", all_blocks_to_remove)
     w = Writer(self.fs)
-    w.erase_blocks(all_blocks_to_remove)
+    w.erase_blocks_and_directory_entry(all_blocks_to_remove, parent_block)
     first_blocks_to_remove.clear()
     all_blocks_to_remove.clear()
     # else:

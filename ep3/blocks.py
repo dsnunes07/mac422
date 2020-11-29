@@ -245,11 +245,14 @@ class Writer:
           line += f'{entry}\n'
       print(line, end='')
 
-  def erase_blocks(self, blocks=[]):
+  def erase_blocks_and_directory_entry(self, blocks=[]):
     i = 0
     blocks_len = len(blocks)
+    # parent_address = '{:04x}'.format(parent_block)
     dir_address = '{:04x}'.format(blocks[i])
     for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      # if line[0:4] == parent_address:
+        # line = re.sub(ENTRY_BY_NAME.replace('(name)', file.name), '', line)
       if line[0:4] == dir_address:
           # line = line.replace('\n', '')
           # print("apagando a linha", dir_address)
