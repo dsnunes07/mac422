@@ -5,7 +5,7 @@ from fat import FAT
 from bitmap import Bitmap
 from blocks import BlockList, Reader, Writer
 from files import File, Directory
-from system_constants import BLOCK_LIST_IDX, TOTAL_BLOCKS, FINAL_BLOCK, EMPTY_BLOCK
+from system_constants import BLOCK_LIST_IDX, TOTAL_BLOCKS, FINAL_BLOCK, EMPTY_BLOCK, MAX_BLOCK_LENGTH
 from patterns import BLOCK_START
 
 file_system = None
@@ -141,7 +141,7 @@ class CP:
     block_content = re.sub(BLOCK_START, block_content, '')
     destiny = self.destiny_file()
     # se o bloco não estiver cheio
-    if (len(block_content) != 4096):
+    if (len(block_content) != MAX_BLOCK_LENGTH):
       self.fs.write_file_to_unit(block, destiny)
   
   def destiny_file(self):
@@ -421,5 +421,25 @@ class RMDIR:
       child_path = f'{path}/{dir.name}' 
       blocks.extend(self.path_content_first_blocks(child_path))
     return blocks
-    
+
+class Find:
+
+  def __init__(self, start, name, fs):
+    self.fs = fs
+    self.start = start
+    self.name = name
+  
+  def execute(self):
+    self.find(self.start)
+  
+  def find(self, path):
+    r = Reader(self.fs)
+    files, dirs, _ = r.read_path(path)
+    if path == '/':
+      path = ''
+    for file in files:
+      if file.name == self.name:
+        print(f'{path}/{file.name}')
+    for dir in dirs:
+      self.find(f'{path}/{dir.name}')
     
