@@ -131,7 +131,15 @@ class Reader:
     return free_space, wasted_space, n_dirs, n_files
   
 
-  
+  """ Dado o primeiro bloco, retorna um vetor com todos os blocos do arquivo"""
+  def get_all_blocks(self, parent_block):
+    all_blocks = []
+    end = parent_block
+    while (end != FINAL_BLOCK):
+      last_block = end
+      all_blocks.append(last_block)
+      end = self.fs.fat.table[last_block]
+    return all_blocks
 
 
 class Writer:
@@ -146,13 +154,14 @@ class Writer:
     raw_content = r.raw_block_content(block_number)
     return (len(raw_content) + len(entry)) < 4096
   
+  """ Dado o primeiro bloco, retorna o último bloco do arquivo """
   def get_last_block(self, parent_block):
     end = parent_block
     while (end != FINAL_BLOCK):
       last_block = end
       end = self.fs.fat.table[last_block]
     return last_block
-  
+
   """ Recebe o bloco dir do diretório que contém o arquivo, recebe a string com
   a entrada na tabela de diretórios e recebe o objeto do arquivo a ser escrito,
   que contém seu conteúdo. Essa função também atualiza a FAT e o bitmap na memória """
@@ -234,6 +243,23 @@ class Writer:
       if line[0:4] == dir_address:
           line = line.replace('\n', '')
           line += f'{entry}\n'
+      print(line, end='')
+
+  def erase_blocks(self, blocks=[]):
+    i = 0
+    blocks_len = len(blocks)
+    dir_address = '{:04x}'.format(blocks[i])
+    for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      if line[0:4] == dir_address:
+          # line = line.replace('\n', '')
+          # print("apagando a linha", dir_address)
+          # line += '\n'
+          self.fs.bitmap.map[blocks[i]] = 1
+          self.fs.fat.table[blocks[i]] = EMPTY_BLOCK
+          line = dir_address + " \n"
+          if (i+1 < blocks_len):
+            i = i+1
+            dir_address = '{:04x}'.format(blocks[i])
       print(line, end='')
 
   def update_dir_last_block(self, parent_block, entry):
