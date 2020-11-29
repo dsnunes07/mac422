@@ -5,7 +5,7 @@ from fat import FAT
 from bitmap import Bitmap
 from blocks import BlockList, Reader, Writer
 from files import File, Directory
-from system_constants import BLOCK_LIST_IDX, TOTAL_BLOCKS, FINAL_BLOCK
+from system_constants import BLOCK_LIST_IDX, TOTAL_BLOCKS, FINAL_BLOCK, EMPTY_BLOCK
 from patterns import BLOCK_START
 
 file_system = None
@@ -389,67 +389,37 @@ class RMDIR:
   def get_dirname(self, dirpath):
     last_slash = dirpath.rfind('/')
     return dirpath[last_slash + 1:]
-  
-  # def check_path(self):
-  #   r = Reader(self.fs)
-  #   _, _, block = r.read_path(self.dirpath)
-  #   print ("o Check deu", block != -1)
-  #   return block != -1
 
   def rmdir(self):
-    # w = Writer(self.fs)
     r = Reader(self.fs)
-    # if self.check_path():
     # encontro os first_blocks dos blocos a serem removidos
-    first_blocks_to_remove = self.get_blocks_to_remove_rec(self.dirpath)
-    # print("first_blocks dos arquivos a serem removidos: ", first_blocks_to_remove)
+    first_blocks = self.path_content_first_blocks(self.dirpath)
     all_blocks_to_remove = []
-    # para cada first_block, encontro os blocos subjacentes e guardo tudo num único vetor all_blocks_to_remove
-    for first_block in first_blocks_to_remove:
-      more_blocks = r.get_all_blocks(first_block)
-      all_blocks_to_remove += more_blocks
+    # para cada first_block, encontro os blocos subjacentes e guardo tudo num
+    # único vetor all_blocks_to_remove
+    for block in first_blocks:
+      next_blocks = r.get_next_blocks(block)
+      all_blocks_to_remove.extend(next_blocks)
     all_blocks_to_remove.sort()
-    print("todos os blocos a serem removidos estão aqui: ", all_blocks_to_remove)
     w = Writer(self.fs)
     w.erase_blocks(all_blocks_to_remove)
-    first_blocks_to_remove.clear()
-    all_blocks_to_remove.clear()
-    # else:
-    #   print('Erro! path não encontrado')
+    # encontra o bloco onde está a entrada do diretório
+    _, _, block = r.read_path(self.parent_dir)
+    w.remove_entry(block, self.dirname)
 
   """ Função recursiva que percorre todos os diretórios (a partir do diretório pai), e retorna um vetor com 
   todos os blocos ocupados pelos arquivos acessados """
-  def get_blocks_to_remove_rec(self, dirpath, blocks=[]):
+  def path_content_first_blocks(self, path):
+    blocks = []
     r = Reader(self.fs)
-    files, dirs, block = r.read_path(dirpath)
-    # if block == -1:
-    #   print(f'Erro: diretório {dirpath} não existe!'),
-    #   return
+    files, dirs, block = r.read_path(path)
+    # adiciona na lista o bloco de entradas do diretório a ser excluído
     blocks.append(block)
-    dirname = self.get_dirname(dirpath)
-    # print("\n+++ Iniciando RMDIR do (", dirname, ") +++")
-    # print("(atual estado dos blocos=", blocks, ')', sep='')
-    # print("files=", end=" ")
-    if files:
-      for file in files:
-        # print(file.name, end=" - ")
-        blocks.append(file.first_block)
-    # else:
-      # print('[]', end='')
-    # print("\ndirs=", end=" ")
-    if dirs:
-      for dir in dirs:
-        # print(dir.name, end=" - ")
-        if dirpath != '/':
-          child_path = dirpath + '/' + dir.name 
-        else:
-          child_path = dirpath + dir.name 
-        # print('-> tentando entrar no ', child_path)
-        blocks = self.get_blocks_to_remove_rec(child_path, blocks)
-    # else:
-      # print('[]', end='')
-    # print("--- Encerrando RMDIR do (", dirname, ") --- \n")
-
+    for file in files:
+      blocks.append(file.first_block)
+    for dir in dirs:
+      child_path = f'{path}/{dir.name}' 
+      blocks.extend(self.path_content_first_blocks(child_path))
     return blocks
     
     
