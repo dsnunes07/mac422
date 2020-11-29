@@ -132,15 +132,14 @@ class Reader:
   
 
   """ Dado o primeiro bloco, retorna um vetor com todos os blocos do arquivo"""
-  def get_all_blocks(self, parent_block):
-    all_blocks = []
-    end = parent_block
-    while (end != FINAL_BLOCK):
-      last_block = end
-      all_blocks.append(last_block)
-      end = self.fs.fat.table[last_block]
-    return all_blocks
-
+  def get_next_blocks(self, parent_block):
+    next_blocks = []
+    current_block = parent_block
+    while (current_block != FINAL_BLOCK):
+      last_block = current_block
+      next_blocks.append(last_block)
+      current_block = self.fs.fat.table[last_block]
+    return next_blocks
 
 class Writer:
 
@@ -274,3 +273,11 @@ class Writer:
       self.fs.fat.table[next_block] = FINAL_BLOCK
       last_block = next_block
     return last_block 
+
+  def remove_entry(self, block, name):
+    block_address = '{:04x}'.format(block)
+    for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      if line[0:4] == block_address:
+        entry = ENTRY_BY_NAME.replace('(name)', name)
+        line = re.sub(entry, '', line)
+      print(line, end='')
