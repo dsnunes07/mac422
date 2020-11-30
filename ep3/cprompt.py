@@ -1,5 +1,5 @@
 import system_constants as c
-from simulation import CP, Touch, MKDIR, RMDIR, CAT, LS, RM, DF
+from simulation import CP, Touch, MKDIR, RMDIR, CAT, LS, RM, DF, Find
 
 class Command:
 
@@ -50,7 +50,8 @@ class Command:
       ls = LS(path, self.file_system)
       ls.ls()
     elif (command == c.FIND):
-      print('é o find!')
+      find = Find(input_split[1], input_split[2], self.file_system)
+      find.execute()
     elif (command == c.DF):
       df = DF(self.file_system)
       df.df()

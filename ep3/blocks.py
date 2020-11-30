@@ -147,11 +147,11 @@ class Writer:
     self.fs = fs
 
   """ checa se a entry (no format *name&timestamp&timestamp...) pode ser escrita no bloco - ou seja, se o bloco não
-  vai ultrapassar o tamanho de 4096 bits ao escrever a entrada no diretório """
+  vai ultrapassar o tamanho de 4000 bits ao escrever a entrada no diretório """
   def check_entry_fits_block(self, block_number, entry):
     r = Reader(self.fs)
     raw_content = r.raw_block_content(block_number)
-    return (len(raw_content) + len(entry)) < 4096
+    return (len(raw_content) + len(entry)) < MAX_BLOCK_LENGTH
   
   """ Dado o primeiro bloco, retorna o último bloco do arquivo """
   def get_last_block(self, parent_block):
@@ -176,9 +176,9 @@ class Writer:
         line += f'{entry}\n'
       elif line[0:4] == file_address:
         if (current_block != FINAL_BLOCK):
-          current_content = file.content[:4096]
+          current_content = file.content[:MAX_BLOCK_LENGTH]
           line = f'{line[0:5]}{current_content}\n'
-          file.content = file.content[4096:]
+          file.content = file.content[MAX_BLOCK_LENGTH:]
           self.fs.bitmap.map[current_block] = 0
           if not file.content:
             next_block = FINAL_BLOCK
