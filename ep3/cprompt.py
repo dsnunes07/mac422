@@ -1,6 +1,5 @@
 import system_constants as c
-from simulation import CP, Touch, MKDIR, CAT, LS, RM
-import time
+from simulation import CP, Touch, MKDIR, RMDIR, CAT, LS, RM, DF
 
 class Command:
 
@@ -29,7 +28,9 @@ class Command:
       mkdir = MKDIR(destiny, self.file_system)
       mkdir.mkdir()
     elif (command == c.RMDIR):
-      print('é o rmdir!')
+      dirpath = input_split[1]
+      rmdir = RMDIR(dirpath, self.file_system)
+      rmdir.rmdir()
     elif (command == c.CAT):
       cat = CAT(input_split[1], self.file_system)
       cat.cat()
@@ -51,7 +52,8 @@ class Command:
     elif (command == c.FIND):
       print('é o find!')
     elif (command == c.DF):
-      print('é o df!')
+      df = DF(self.file_system)
+      df.df()
     elif (command == c.UMOUNT):
       self.file_system.umount()
     elif (command == c.SAI):

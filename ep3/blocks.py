@@ -108,17 +108,65 @@ class Reader:
         f.seek(BLOCK_LIST_IDX)
         block = self.fs.fat.table[block]
     f.close()
+  
+  """ Extrai estatísticas (espaço livre, desperdiçado e quantidade de arquivos e
+  diretórios) da unidade """
+  def read_unit_stats(self):
+    f = open(self.fs.filename, 'r')
+    f.seek(BLOCK_LIST_IDX)
+    line = f.readline().rstrip()
+    free_space = 0
+    wasted_space = 0
+    n_dirs = 0
+    n_files = 0
+    while (line != ''):
+      address_int = int(line[0:4], 16)
+      if self.fs.bitmap.map[address_int] == 1:
+        free_space += MAX_BLOCK_LENGTH
+      else:
+        wasted_space += (MAX_BLOCK_LENGTH - len(line[5:]))
+        n_dirs += len(re.findall(DIR_OBJ, line))
+        n_files += len(re.findall(FILE_OBJ, line))
+      line = f.readline().rstrip()
+    return free_space, wasted_space, n_dirs, n_files
+  
+
+  """ Dado o primeiro bloco, retorna um vetor com todos os blocos do arquivo"""
+  def get_next_blocks(self, parent_block):
+    next_blocks = []
+    current_block = parent_block
+    while (current_block != FINAL_BLOCK):
+      last_block = current_block
+      next_blocks.append(last_block)
+      current_block = self.fs.fat.table[last_block]
+    return next_blocks
 
 class Writer:
 
   def __init__(self, fs):
     self.fs = fs
+
+  """ checa se a entry (no format *name&timestamp&timestamp...) pode ser escrita no bloco - ou seja, se o bloco não
+  vai ultrapassar o tamanho de 4096 bits ao escrever a entrada no diretório """
+  def check_entry_fits_block(self, block_number, entry):
+    r = Reader(self.fs)
+    raw_content = r.raw_block_content(block_number)
+    return (len(raw_content) + len(entry)) < 4096
   
+  """ Dado o primeiro bloco, retorna o último bloco do arquivo """
+  def get_last_block(self, parent_block):
+    end = parent_block
+    while (end != FINAL_BLOCK):
+      last_block = end
+      end = self.fs.fat.table[last_block]
+    return last_block
+
   """ Recebe o bloco dir do diretório que contém o arquivo, recebe a string com
   a entrada na tabela de diretórios e recebe o objeto do arquivo a ser escrito,
   que contém seu conteúdo. Essa função também atualiza a FAT e o bitmap na memória """
   def write_file(self, dir, entry, file):
-    dir_address = '{:04x}'.format(dir)
+    last_block = self.update_dir_last_block(dir, entry)
+    dir_address = '{:04x}'.format(last_block)
     current_block = file.first_block
     file_address = '{:04x}'.format(current_block)
     for line in fileinput.FileInput(self.fs.filename, inplace=1):
@@ -183,14 +231,53 @@ class Writer:
   def write_bitmap(self):
     self.fs.bitmap.write_bitmap_to_unit()
 
-  """ Recebe o bloco pai onde deve ocorrer a escrita e a 
-  entrada do diretório (no formato %dirname&timestamp&timestamp&timestamp&first_block) a ser criado. """
+  """ Recebe o first_block do diretório pai onde deve ocorrer a escrita e a 
+  entrada do novo diretório (no formato %dirname&timestamp&timestamp&timestamp&first_block) a ser criado """
   def write_directory(self, parent_block, entry):
-    dir_address = '{:04x}'.format(parent_block)
+    # Encontra o último bloco do diretório
+    last_block = self.update_dir_last_block(parent_block, entry)
+    dir_address = '{:04x}'.format(last_block)
+    # Escreve a entrada no sistema de arquivos.
     for line in fileinput.FileInput(self.fs.filename, inplace=1):
-      # escrever a entrada do diretório
       if line[0:4] == dir_address:
-        line = line.replace('\n', '')
-        line += f'{entry}\n'
+          line = line.replace('\n', '')
+          line += f'{entry}\n'
       print(line, end='')
-  
+
+  def erase_blocks(self, blocks=[]):
+    i = 0
+    blocks_len = len(blocks)
+    dir_address = '{:04x}'.format(blocks[i])
+    for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      if line[0:4] == dir_address:
+          # line = line.replace('\n', '')
+          # print("apagando a linha", dir_address)
+          # line += '\n'
+          self.fs.bitmap.map[blocks[i]] = 1
+          self.fs.fat.table[blocks[i]] = EMPTY_BLOCK
+          line = dir_address + " \n"
+          if (i+1 < blocks_len):
+            i = i+1
+            dir_address = '{:04x}'.format(blocks[i])
+      print(line, end='')
+
+  def update_dir_last_block(self, parent_block, entry):
+     # pega o último bloco do diretório pai (em teoria, é onde é possível escrever as entradas)
+    last_block = self.get_last_block(parent_block)
+    # se não cabe mais entradas nesse bloco, pega o próximo bloco vazio, atualiza a tabela FAT, o BITMAP
+    # e o endereço onde a entrada deve ser escrita
+    if not self.check_entry_fits_block(last_block, entry):
+      next_block = self.fs.nearest_empty_block(last_block)
+      self.fs.bitmap.map[next_block] = 0
+      self.fs.fat.table[last_block] = next_block
+      self.fs.fat.table[next_block] = FINAL_BLOCK
+      last_block = next_block
+    return last_block 
+
+  def remove_entry(self, block, name):
+    block_address = '{:04x}'.format(block)
+    for line in fileinput.FileInput(self.fs.filename, inplace=1):
+      if line[0:4] == block_address:
+        entry = ENTRY_BY_NAME.replace('(name)', name)
+        line = re.sub(entry, '', line)
+      print(line, end='')
