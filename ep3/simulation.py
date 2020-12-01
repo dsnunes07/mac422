@@ -111,8 +111,13 @@ class CP:
     self.destiny = destiny
     self.destiny_name = self._get_destiny_name()
     self.destiny_path = self._get_destiny_path()
+    # self.parent_dir = self._get_parent_dir()
     self.fs = fs
     self.content = self.read_origin_content()
+
+  # def _get_parent_dir(self):
+  #   last_slash = self.destiny.rfind('/')
+  #   return self.destiny[:last_slash]
   
   def read_origin_content(self):
     f = open(self.origin, 'r')
@@ -143,6 +148,10 @@ class CP:
     # se o bloco não estiver cheio
     if (len(block_content) != MAX_BLOCK_LENGTH):
       self.fs.write_file_to_unit(block, destiny)
+    #Touch no diretório pai (para atualizar o tempo de acesso)
+    # if self.parent_dir:
+    #   touch = Touch(self.parent_dir, self.fs)
+    #   touch.touch()
   
   def destiny_file(self):
     first_block = self.fs.nearest_empty_block(self.path_block)
@@ -200,9 +209,12 @@ class Touch:
         return
 
     first_block = self.fs.nearest_empty_block(parent_block)
-    file = File(self.filename, 0, timestamp, timestamp, timestamp, first_block)
-    file.set_content('')
-    self.fs.write_file_to_unit(parent_block, file)
+    if self.filename:
+      file = File(self.filename, 0, timestamp, timestamp, timestamp, first_block)
+      file.set_content('')
+      self.fs.write_file_to_unit(parent_block, file)
+    else:
+      print("O nome do arquivo não pode ser uma string vazia!")
 
 class MKDIR:
 
@@ -242,10 +254,14 @@ class MKDIR:
       if file.name == self.dirname:
         print(f'Erro: arquivo {self.parent_dir} já existe! Não é possível criar um diretório com o mesmo nome'),
         return
+    #Encontra o bloco vazio mais próximo, cria a entrada do diretório e escreve na unidade
     first_block = self.fs.nearest_empty_block(parent_block)
     dir = Directory(self.dirname, timestamp, timestamp, timestamp, first_block)
     self.fs.write_dir_to_unit(parent_block, dir)
-
+    #Touch no diretório pai (para atualizar o tempo de acesso)
+    if self.parent_dir:
+      touch = Touch(self.parent_dir, self.fs)
+      touch.touch()
 
 class CAT:
 
@@ -406,20 +422,33 @@ class RMDIR:
     # encontra o bloco onde está a entrada do diretório
     _, _, block = r.read_path(self.parent_dir)
     w.remove_entry(block, self.dirname)
+    if self.parent_dir:
+      touch = Touch(self.parent_dir, self.fs)
+      touch.touch()
 
   """ Função recursiva que percorre todos os diretórios (a partir do diretório pai), e retorna um vetor com 
   todos os blocos ocupados pelos arquivos acessados """
-  def path_content_first_blocks(self, path):
-    blocks = []
+  def path_content_first_blocks(self, dirpath):
+    blocks=[]
     r = Reader(self.fs)
-    files, dirs, block = r.read_path(path)
-    # adiciona na lista o bloco de entradas do diretório a ser excluído
+    files, dirs, block = r.read_path(dirpath)
+    print("Removendo diretório", dirpath)
     blocks.append(block)
-    for file in files:
-      blocks.append(file.first_block)
-    for dir in dirs:
-      child_path = f'{path}/{dir.name}' 
-      blocks.extend(self.path_content_first_blocks(child_path))
+    dirname = self.get_dirname(dirpath)
+    if files:
+      for file in files:
+        if dirpath != '/':
+          print("Removendo arquivo ", dirpath, "/", file.name, sep="")
+        else:
+          print("Removendo arquivo ", dirpath, file.name, sep="")
+        blocks.append(file.first_block)
+    if dirs:
+      for dir in dirs:
+        if dirpath != '/':
+          child_path = dirpath + '/' + dir.name 
+        else:
+          child_path = dirpath + dir.name 
+        blocks.extend(self.path_content_first_blocks(child_path))
     return blocks
 
 class Find:
