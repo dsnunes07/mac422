@@ -250,11 +250,9 @@ class Writer:
     dir_address = '{:04x}'.format(blocks[i])
     for line in fileinput.FileInput(self.fs.filename, inplace=1):
       if line[0:4] == dir_address:
-          # line = line.replace('\n', '')
-          # print("apagando a linha", dir_address)
-          # line += '\n'
-          self.fs.bitmap.map[blocks[i]] = 1
-          self.fs.fat.table[blocks[i]] = EMPTY_BLOCK
+          if blocks[i] != 0:
+            self.fs.bitmap.map[blocks[i]] = 1
+            self.fs.fat.table[blocks[i]] = EMPTY_BLOCK
           line = dir_address + " \n"
           if (i+1 < blocks_len):
             i = i+1
