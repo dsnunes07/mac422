@@ -165,6 +165,11 @@ class Writer:
   a entrada na tabela de diretórios e recebe o objeto do arquivo a ser escrito,
   que contém seu conteúdo. Essa função também atualiza a FAT e o bitmap na memória """
   def write_file(self, dir, entry, file):
+    free_blocks = self.fs.bitmap.map.count(1)
+    free_space = free_blocks * MAX_BLOCK_LENGTH
+    if file.size + len(entry) > free_space:
+      print(f'Erro: tamanho do arquivo excede o espaço livre na unidade')
+      return
     last_block = self.update_dir_last_block(dir, entry)
     dir_address = '{:04x}'.format(last_block)
     current_block = file.first_block
