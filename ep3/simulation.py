@@ -149,6 +149,7 @@ class CP:
     if self.destiny_name:
       # se o bloco não estiver cheio
       if (len(block_content) != MAX_BLOCK_LENGTH):
+        print('Copiando...')
         self.fs.write_file_to_unit(block, destiny)    
     else:
       print("O nome do arquivo não pode ser uma string vazia!")
@@ -368,6 +369,7 @@ class RM:
     if not f:
       print(f'Erro: não há arquivo regular em {self.path}')
       return
+    print('Apagando...')
     w.erase_file(block, f)
   
   def locate_file(self, files):
