@@ -28,10 +28,7 @@ class Command:
     elif (command == c.RMDIR):
       dirpath = input_split[1]
       rmdir = RMDIR(dirpath, self.file_system)
-      start = time.time()
       rmdir.rmdir()
-      end = time.time()
-      print(f'Tempo decorrido: {end-start}s')
     elif (command == c.CAT):
       cat = CAT(input_split[1], self.file_system)
       cat.cat()
