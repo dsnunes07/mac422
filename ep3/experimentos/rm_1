@@ -1,0 +1,4 @@
+mount u
+cp 1mb /1mb
+rm /1mb
+sai
