@@ -145,9 +145,13 @@ class CP:
     block_content = r.raw_block_content(block)
     block_content = re.sub(BLOCK_START, block_content, '')
     destiny = self.destiny_file()
-    # se o bloco não estiver cheio
-    if (len(block_content) != MAX_BLOCK_LENGTH):
-      self.fs.write_file_to_unit(block, destiny)
+    # verifica se o nome do arquivo é válido
+    if self.destiny_name:
+      # se o bloco não estiver cheio
+      if (len(block_content) != MAX_BLOCK_LENGTH):
+        self.fs.write_file_to_unit(block, destiny)    
+    else:
+      print("O nome do arquivo não pode ser uma string vazia!")
     #Touch no diretório pai (para atualizar o tempo de acesso)
     if self.parent_dir:
       touch = Touch(self.parent_dir, self.fs)
