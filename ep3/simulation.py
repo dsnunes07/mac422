@@ -111,13 +111,13 @@ class CP:
     self.destiny = destiny
     self.destiny_name = self._get_destiny_name()
     self.destiny_path = self._get_destiny_path()
-    # self.parent_dir = self._get_parent_dir()
+    self.parent_dir = self._get_parent_dir()
     self.fs = fs
     self.content = self.read_origin_content()
 
-  # def _get_parent_dir(self):
-  #   last_slash = self.destiny.rfind('/')
-  #   return self.destiny[:last_slash]
+  def _get_parent_dir(self):
+    last_slash = self.destiny.rfind('/')
+    return self.destiny[:last_slash]
   
   def read_origin_content(self):
     f = open(self.origin, 'r')
@@ -149,9 +149,9 @@ class CP:
     if (len(block_content) != MAX_BLOCK_LENGTH):
       self.fs.write_file_to_unit(block, destiny)
     #Touch no diretório pai (para atualizar o tempo de acesso)
-    # if self.parent_dir:
-    #   touch = Touch(self.parent_dir, self.fs)
-    #   touch.touch()
+    if self.parent_dir:
+      touch = Touch(self.parent_dir, self.fs)
+      touch.touch()
   
   def destiny_file(self):
     first_block = self.fs.nearest_empty_block(self.path_block)

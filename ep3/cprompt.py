@@ -1,5 +1,6 @@
 import system_constants as c
 from simulation import CP, Touch, MKDIR, RMDIR, CAT, LS, RM, DF, Find
+import time
 
 class Command:
 
