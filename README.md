@@ -10,5 +10,5 @@ EPs de Sistemas Operacionais
     
     * Link para apresentação do EP2: https://www.overleaf.com/project/5fa1c40044ed459ca1f583ae
 
-* EP3 - entrega até 07/12
+* ✅ EP3 - entrega até 07/12
     * Link para apresentação do EP3: https://www.overleaf.com/project/5fc576f70cd26689bba761e7
